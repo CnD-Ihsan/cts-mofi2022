@@ -8,7 +8,7 @@ class WorkOrderApi{
 
   static Future<WorkOrder> getWorkOrder(num id) async {
     //id = '194';
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/show/$id');
+    var uri = Uri.http('80.80.0.86:80', '/api/serviceorder/show-work-order');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -19,34 +19,34 @@ class WorkOrderApi{
     });
 
     Map data = jsonDecode(response.body);
+
     String? tempDate;
     String? tempTime;
 
-    if(data['ftth'].containsKey('start_date') && data['ftth']['start_date'] != null){
+    print(data['appointment_date']);
+    if(data.containsKey('appointment_date') && data['appointment_date'] != null){
       DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
-      DateTime dt = df.parse(data['ftth']['start_date']);
+      DateTime dt = DateTime.parse(data['appointment_date']);
       tempDate = DateFormat.yMMMMd('en_US').format(dt).toString();
       tempTime = DateFormat.jm().format(dt).toString();
     }
 
     return WorkOrder(
-        woId: data['ftth']['wo_id'],
-        woName: data['ftth']['wo_name'],
-        status: data['ftth']['status'],
-        requestedBy: data['ftth']['requested_by'],
-        address: data['ftth']['cust_addr_name'],
-        createdBy: data['ftth']['wo_created_by'],
-        startDate: data['ftth']['start_date'],
+        woId: data['wo_id'],
+        woName: data['wo_name'],
+        status: data['status'],
+        requestedBy: data['requested_by'],
+        address: data['address'],
+        startDate: data['appointment_date'],
         time: tempTime,
         date: tempDate,
-        lat: double.parse(data['lat']),
-        lng: double.parse(data['lng']),
+        lat: double.parse(data['latitude']),
+        lng: double.parse(data['longitude']),
 
-        ontActId: num.parse(data['ftth']['ont_act_id']),
-        ontSn: data['ftth']['ont_sn'],
-        custContact: data['ftth']['cust_contact'],
-        carrier: data['ftth']['carrier'],
-        speed: data['ftth']['package_speed'],
+        ontSn: data['ont_sn'],
+        custContact: data['cust_contact'],
+        carrier: data['carrier'],
+        speed: data['package'],
     );
   }
 
@@ -83,7 +83,6 @@ class WorkOrderApi{
           date: tempDate,
           time: tempTime,
           woType: data['wo_type'],
-          ontActId: num.parse(data['ont_act_id']),
       );
       workOrderList.add(wo);
     }
@@ -115,6 +114,30 @@ class WorkOrderApi{
 
       return temp;
     }
+
+  static activateOnt(String? ontSn) async {
+    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/submitOnt');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    Map jsonOnt = {
+      "ontSn" : ontSn
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "useQueryString" : "true",
+        "Content-Type": "application/json",
+        "Authorization" : "Bearer $token",
+      },
+      body: jsonEncode(jsonOnt),
+    );
+
+    Map temp = json.decode(response.body);
+
+    return temp;
+  }
 
 
 }

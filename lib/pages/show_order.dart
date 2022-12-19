@@ -24,7 +24,6 @@ class _ShowOrderState extends State<ShowOrder> {
 
   @override
   void initState() {
-    orderID = widget.orderID;
     Future.delayed(Duration.zero, () {
       showDialog(
           context: context,
@@ -43,6 +42,7 @@ class _ShowOrderState extends State<ShowOrder> {
     });
     getAsync(widget.orderID);
     super.initState();
+
   }
 
   WorkOrder wo = WorkOrder(
@@ -51,7 +51,6 @@ class _ShowOrderState extends State<ShowOrder> {
     status: 'Loading..',
     requestedBy: 'Loading...',
     address: 'Loading...',
-    ontActId: 0,
     custContact: 'Loading...',
     carrier: 'Loading...',
     speed: 'Loading...',
@@ -68,7 +67,6 @@ class _ShowOrderState extends State<ShowOrder> {
       }
     } catch (e) {
       print(e);
-      Navigator.popUntil(context, ModalRoute.withName('/index'));
     }
     if (mounted) {
       setState(() {});
@@ -101,7 +99,6 @@ class _ShowOrderState extends State<ShowOrder> {
                   builder: (BuildContext context) {
                     // Returning SizedBox instead of a Container
                     return SubmitONT(
-                      ontId: wo.ontActId,
                       woId: wo.woId,
                     );
                   },
@@ -207,7 +204,7 @@ class _ShowOrderState extends State<ShowOrder> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    leading: Icon(Icons.broadcast_on_personal_outlined),
+                    leading: const Icon(Icons.broadcast_on_personal_outlined),
                     // leading: const Text(
                     //   'Requested By:',
                     //   style: TextStyle(fontSize: 18),
@@ -220,7 +217,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     ),
                   ),
                   ListTile(
-                    leading: Icon(Icons.signal_cellular_alt),
+                    leading: const Icon(Icons.signal_cellular_alt),
                     // leading: const Text(
                     //   'Requested By:',
                     //   style: TextStyle(fontSize: 18),

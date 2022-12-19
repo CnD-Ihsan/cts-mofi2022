@@ -19,8 +19,6 @@ class WorkOrder {
   String? date;
   String? time;
 
-  // //ONT activation details
-  final num ontActId;
   // final num soId;
   // final String soType;
   final String custContact;
@@ -44,7 +42,6 @@ class WorkOrder {
     this.lat = 0.0,
     this.lng = 0.0,
 
-    required this.ontActId,
     // this.soId,
     // this.soType,
     this.custContact = '',
@@ -67,7 +64,6 @@ class WorkOrder {
       endDate: json['ftth']['end_date'] as String?,
       address: json['ftth']['cust_addr_name'] as String,
 
-      ontActId: json['ftth']['ont_act_id'] as num,
       // soId: json['so_id'] as num,
       // soType: json['order_type'] as String,
       custContact: json['ftth']['cust_contact'] as String,

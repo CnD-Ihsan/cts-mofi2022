@@ -7,8 +7,8 @@ import 'package:wfm/pages/widgets/message_widgets.dart';
 
 
 class SubmitONT extends StatefulWidget {
-  num ontId = 0, woId = 0;
-  SubmitONT({Key? key, required this.ontId, required this.woId}) : super(key: key);
+  num woId = 0;
+  SubmitONT({Key? key, required this.woId}) : super(key: key);
 
   @override
   State<SubmitONT> createState() => _SubmitONTState();
@@ -24,7 +24,6 @@ class _SubmitONTState extends State<SubmitONT> {
 
   @override
   void initState(){
-    ontId = widget.ontId;
     woId = widget.woId;
     super.initState();
   }
@@ -103,13 +102,7 @@ class _SubmitONTState extends State<SubmitONT> {
                         duration: const Duration(milliseconds: 2000),
                       ),
                     );
-                    Navigator.popUntil(context, ModalRoute.withName('/show'));
-                    Navigator.pushReplacement<void, void>(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) =>  ShowOrder(orderID: woId,),
-                      ),
-                    );
+                    setState(() {});
                   }
                 },
                 child: const Text('Submit ONT SN'),
