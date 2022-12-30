@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:wfm/api/utils.dart';
 
+snackbarMessage(BuildContext context, String? message){
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Row(
+        children: [
+          Text(message ?? 'Missing'),
+          const Icon(
+            Icons.check_circle,
+            color: Colors.white,
+          ),
+        ],
+      ),
+      backgroundColor: Colors.green,
+      duration: const Duration(milliseconds: 2000),
+    ),
+  );
+}
+
 alertMessage(BuildContext context, String message) {
   AlertDialog alert = AlertDialog(
     content: ListTile(

@@ -4,6 +4,7 @@ import 'package:wfm/pages/list_orders.dart';
 class WorkOrder {
   //Work order details
   final num woId;
+  final num soId;
   final String woName;
   final String status;
   final String requestedBy;
@@ -29,6 +30,7 @@ class WorkOrder {
 
   WorkOrder({
     required this.woId,
+    required this.soId,
     required this.woName,
     required this.status,
     required this.requestedBy,
@@ -55,6 +57,7 @@ class WorkOrder {
 
     return WorkOrder(
       woId: json['ftth']['wo_id'] as num,
+      soId: json['ftth']['service_order'] as num,
       woName: json['ftth']['wo_name'] as String,
       status: json['ftth']['status'] as String,
       requestedBy: json['ftth']['requested_by'] as String,

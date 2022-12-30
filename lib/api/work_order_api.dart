@@ -8,7 +8,7 @@ class WorkOrderApi{
 
   static Future<WorkOrder> getWorkOrder(num id) async {
     //id = '194';
-    var uri = Uri.http('80.80.0.86:80', '/api/serviceorder/show-work-order');
+    var uri = Uri.http('80.80.0.86:80', '/api/serviceorder/show-work-order/$id');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -23,7 +23,6 @@ class WorkOrderApi{
     String? tempDate;
     String? tempTime;
 
-    print(data['appointment_date']);
     if(data.containsKey('appointment_date') && data['appointment_date'] != null){
       DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
       DateTime dt = DateTime.parse(data['appointment_date']);
@@ -32,8 +31,9 @@ class WorkOrderApi{
     }
 
     return WorkOrder(
-        woId: data['wo_id'],
-        woName: data['wo_name'],
+        woId: num.parse(data['work_order']),
+        soId: data['so_id'],
+        woName: data['crm_no'],
         status: data['status'],
         requestedBy: data['requested_by'],
         address: data['address'],
@@ -76,6 +76,7 @@ class WorkOrderApi{
 
       WorkOrder wo = WorkOrder(
           woId: data['wo_id'],
+          soId: num.parse(data['service_order']),
           woName: data['wo_name'],
           status: data['status'],
           requestedBy: data['requested_by'],
@@ -83,6 +84,8 @@ class WorkOrderApi{
           date: tempDate,
           time: tempTime,
           woType: data['wo_type'],
+          lat: data['latitude'],
+          lng: data['longitude'],
       );
       workOrderList.add(wo);
     }
@@ -90,28 +93,28 @@ class WorkOrderApi{
     return workOrderList;
     }
 
-    static submitOnt(num ontId, String? ontSn) async {
-      var uri = Uri.http('80.80.2.254:8080', '/api/workorder/submitOnt');
+    static submitOnt(num soId, String? ontSn) async {
+      var uri = Uri.http('80.80.0.86:80', '/api/serviceorder/ont-activation');
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
 
       Map jsonOnt = {
-        "ontId" : ontId,
-        "ontSn" : ontSn
+        "so" : soId,
+        "ontsn" : ontSn
       };
 
       final response = await http.post(
-          uri,
-          headers: {
-            "useQueryString" : "true",
-            "Content-Type": "application/json",
-            "Authorization" : "Bearer $token",
-          },
-          body: jsonEncode(jsonOnt),
+        uri,
+        headers: {
+          "useQueryString" : "true",
+          "Content-Type": "application/json",
+          // "Authorization" : "Bearer $token",
+        },
+        body: jsonEncode(jsonOnt),
       );
+      print(response.body);
 
       Map temp = json.decode(response.body);
-
       return temp;
     }
 

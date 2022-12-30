@@ -5,26 +5,24 @@ import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/show_order.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
-
 class SubmitONT extends StatefulWidget {
-  num woId = 0;
-  SubmitONT({Key? key, required this.woId}) : super(key: key);
+  num soId = 0;
+  SubmitONT({Key? key, required this.soId}) : super(key: key);
 
   @override
   State<SubmitONT> createState() => _SubmitONTState();
 }
 
 class _SubmitONTState extends State<SubmitONT> {
-  num ontId = 0;
-  num woId = 0;
+  num soId = 0;
   String ontSn = 'N/A';
   var response;
   Stream<dynamic>? bc;
   var txt = TextEditingController();
 
   @override
-  void initState(){
-    woId = widget.woId;
+  void initState() {
+    soId = widget.soId;
     super.initState();
   }
 
@@ -33,7 +31,6 @@ class _SubmitONTState extends State<SubmitONT> {
     txt.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +57,7 @@ class _SubmitONTState extends State<SubmitONT> {
                     },
                   ),
                   contentPadding:
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 ),
                 controller: txt,
               ),
@@ -71,30 +68,28 @@ class _SubmitONTState extends State<SubmitONT> {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  if(txt.text == '' || txt.text == '-1' || txt.text.contains(' ')){
+                  if (txt.text == '' ||
+                      txt.text == '-1' ||
+                      txt.text.contains(' ')) {
                     alertMessage(context, 'Invalid input');
                     return;
                   }
                   showLoaderDialog(context);
-                  response = await WorkOrderApi.submitOnt(ontId,txt.text);
-                  if(mounted){}
+                  response = await WorkOrderApi.submitOnt(soId, txt.text);
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
 
-                  if((response['code']) == 1){
-                    // Navigator.pushReplacement<void, void>(
-                    //   context,
-                    //   MaterialPageRoute<void>(
-                    //     builder: (BuildContext context) =>  ShowOrder(orderID: woId,),
-                    //   ),
-                    // );
+                  if (response.containsKey('data')) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        behavior: SnackBarBehavior.floating,
+                        // behavior: SnackBarBehavior.floating,
                         content: Row(
                           children: const [
-                            Text('Serial Number Submitted'),
+                            Text('ONT Activated'),
                             Icon(
-                                Icons.check_circle,
-                                color: Colors.white,
+                              Icons.check_circle,
+                              color: Colors.white,
                             ),
                           ],
                         ),
@@ -102,8 +97,34 @@ class _SubmitONTState extends State<SubmitONT> {
                         duration: const Duration(milliseconds: 2000),
                       ),
                     );
-                    setState(() {});
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            Expanded(
+                                child:
+                                    Text('Error: ${response['errorMessage']}')),
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(milliseconds: 2000),
+                      ),
+                    );
                   }
+                  // Navigator.pop(context);
+                  Navigator.popUntil(context, ModalRoute.withName('/show'));
+                  // Navigator.pushReplacement<void, void>(
+                  //   context,
+                  //   MaterialPageRoute<void>(
+                  //     builder: (BuildContext context) =>  ShowOrder(orderID: soId,),
+                  //   ),
+                  // );
+                  setState(() {});
                 },
                 child: const Text('Submit ONT SN'),
               ),
@@ -114,12 +135,9 @@ class _SubmitONTState extends State<SubmitONT> {
     );
   }
 
-  void getScanRes() async{
+  void getScanRes() async {
     ontSn = await FlutterBarcodeScanner.scanBarcode(
-        "#ff6666",
-        "Cancel",
-        true,
-        ScanMode.BARCODE);
+        "#ff6666", "Cancel", true, ScanMode.BARCODE);
 
     setState(() {
       ontSn = ontSn;
@@ -147,5 +165,3 @@ class _SubmitONTState extends State<SubmitONT> {
     );
   }
 }
-
-

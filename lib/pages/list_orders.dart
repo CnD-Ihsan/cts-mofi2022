@@ -203,7 +203,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                           name: "/show",
                                         ),
                                         builder: (context) => ShowOrder(
-                                              orderID: wo.woId,
+                                              orderID: wo.soId,
                                             )),
                                   );
                                 },

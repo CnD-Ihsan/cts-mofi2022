@@ -47,6 +47,7 @@ class _ShowOrderState extends State<ShowOrder> {
 
   WorkOrder wo = WorkOrder(
     woId: 0,
+    soId: 0,
     woName: 'Loading...',
     status: 'Loading..',
     requestedBy: 'Loading...',
@@ -99,7 +100,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   builder: (BuildContext context) {
                     // Returning SizedBox instead of a Container
                     return SubmitONT(
-                      woId: wo.woId,
+                      soId: wo.soId,
                     );
                   },
                 ),
