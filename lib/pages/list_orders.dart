@@ -75,23 +75,12 @@ class _WorkOrdersState extends State<WorkOrders> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.notifications),
+              leading: const Icon(Icons.circle_notifications),
               title: const Text('Pending'),
               selectedColor: Colors.blue,
               selected: filter == 'Pending' ? true : false,
               onTap: () async {
                 filter = 'Pending';
-                Navigator.pop(context);
-                setState((){});
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.incomplete_circle),
-              title: const Text('In Progress'),
-              selectedColor: Colors.blue,
-              selected: filter == 'In Progress' ? true : false,
-              onTap: () async {
-                filter = 'In Progress';
                 Navigator.pop(context);
                 setState((){});
               },
@@ -108,8 +97,30 @@ class _WorkOrdersState extends State<WorkOrders> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.cancel),
+              title: const Text('Cancelled'),
+              selectedColor: Colors.blue,
+              selected: filter == 'Cancelled' ? true : false,
+              onTap: () async {
+                filter = 'Cancelled';
+                Navigator.pop(context);
+                setState((){});
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_circle_left_sharp),
+              title: const Text('Returned'),
+              selectedColor: Colors.blue,
+              selected: filter == 'Returned' ? true : false,
+              onTap: () async {
+                filter = 'Returned';
+                Navigator.pop(context);
+                setState((){});
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.circle),
-              title: const Text('All'),
+              title: const Text('Show All'),
               selectedColor: Colors.blue,
               selected: filter == null ? true : false,
               onTap: () async {

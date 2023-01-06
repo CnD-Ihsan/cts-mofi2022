@@ -46,7 +46,7 @@ class _SubmitONTState extends State<SubmitONT> {
             ListTile(
               title: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Enter ONT Serial Number',
+                  hintText: 'Enter or scan serial number',
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.camera_alt_outlined),
                     iconSize: 20,
@@ -77,7 +77,8 @@ class _SubmitONTState extends State<SubmitONT> {
                   showLoaderDialog(context);
                   response = await WorkOrderApi.submitOnt(soId, txt.text);
                   if (mounted) {
-                    Navigator.pop(context);
+                    // setState(() {});
+                    // Navigator.pop(context);
                   }
 
                   if (response.containsKey('data')) {
@@ -94,7 +95,7 @@ class _SubmitONTState extends State<SubmitONT> {
                           ],
                         ),
                         backgroundColor: Colors.green,
-                        duration: const Duration(milliseconds: 2000),
+                        duration: const Duration(milliseconds: 3000),
                       ),
                     );
                   } else {
@@ -112,19 +113,20 @@ class _SubmitONTState extends State<SubmitONT> {
                           ],
                         ),
                         backgroundColor: Colors.red,
-                        duration: const Duration(milliseconds: 2000),
+                        duration: const Duration(milliseconds: 3000),
                       ),
                     );
                   }
                   // Navigator.pop(context);
-                  Navigator.popUntil(context, ModalRoute.withName('/show'));
-                  // Navigator.pushReplacement<void, void>(
-                  //   context,
-                  //   MaterialPageRoute<void>(
-                  //     builder: (BuildContext context) =>  ShowOrder(orderID: soId,),
-                  //   ),
-                  // );
-                  setState(() {});
+                  Navigator.popUntil(context, ModalRoute.withName('/index'));
+                  // setState(() {});
+                  Navigator.pushReplacement<void, void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) =>  ShowOrder(orderID: soId,),
+                    ),
+                  );
+                  // Navigator.popAndPushNamed(context, '/show');
                 },
                 child: const Text('Submit ONT SN'),
               ),

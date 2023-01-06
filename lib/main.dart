@@ -30,7 +30,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'WFM Mobile Apps',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -50,11 +50,12 @@ class _MyAppState extends State<MyApp> {
       user = prefs.getString('user');
       email = prefs.getString('email');
       if(mounted){
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => WorkOrders(user: user ?? 'NullUser', email: email ?? 'NullEmail')),
-        );
+        Navigator.pushReplacementNamed(context, '/index');
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //       builder: (context) => WorkOrders(user: user ?? 'NullUser', email: email ?? 'NullEmail')),
+        // );
       }
     } else {
       return const Login();

@@ -27,6 +27,7 @@ class _ShowOrderState extends State<ShowOrder> {
     Future.delayed(Duration.zero, () {
       showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (BuildContext context) {
             return AlertDialog(
               content: Row(
