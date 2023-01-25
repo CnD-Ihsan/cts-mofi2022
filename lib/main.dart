@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/pages/login.dart';
-import 'package:wfm/pages/show_order.dart';
+import 'package:wfm/pages/show_new_installation.dart';
+import 'package:wfm/route.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +23,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    getPrefs();
+    // getPrefs();
     super.initState();
   }
 
@@ -37,30 +38,42 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/login': (context) => const Login(),
         '/index': (context) => const WorkOrders(user: 'Unauthorized', email: 'Unauthorized'),
-        '/show': (context) => const ShowOrder(orderID: 0,),
+        '/show/:orderID': (context) => const ShowOrder(orderID: 0,),
       },
+      onGenerateRoute: RouteGenerator.generateRoute,
       home: const Landing(),
     );
   }
-
-  getPrefs() async {
-    prefs = await SharedPreferences.getInstance();
-
-    if (prefs.containsKey('user') && prefs.containsKey('token')) {
-      user = prefs.getString('user');
-      email = prefs.getString('email');
-      if(mounted){
-        Navigator.pushReplacementNamed(context, '/index');
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //       builder: (context) => WorkOrders(user: user ?? 'NullUser', email: email ?? 'NullEmail')),
-        // );
-      }
-    } else {
-      return const Login();
-    }
-  }
+  //
+  // getPrefs() async {
+  //   prefs = await SharedPreferences.getInstance();
+  //
+  //   if (prefs.containsKey('user') && prefs.containsKey('token')) {
+  //     user = prefs.getString('user');
+  //     email = prefs.getString('email');
+  //     if(mounted){
+  //       // Navigator.push(
+  //       //   context,
+  //       //   MaterialPageRoute(
+  //       //       settings: const RouteSettings(
+  //       //         name: "/index",
+  //       //       ),
+  //       //       builder: (context) => WorkOrders(
+  //       //           user: user ?? 'Unauthorized',
+  //       //           email: email ?? 'Unauthorized')
+  //       //   ),
+  //       // );
+  //       // Navigator.pushReplacementNamed(context, '/index');
+  //       // Navigator.push(
+  //       //   context,
+  //       //   MaterialPageRoute(
+  //       //       builder: (context) => WorkOrders(user: user ?? 'NullUser', email: email ?? 'NullEmail')),
+  //       // );
+  //     }
+  //   } else {
+  //     return const Login();
+  //   }
+  // }
 }
 
 class Landing extends StatefulWidget {
@@ -85,7 +98,7 @@ class _LandingState extends State<Landing> {
         Navigator.pushNamedAndRemoveUntil(
             context, '/login', ModalRoute.withName('/login'));
       } else {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
               builder: (context) => WorkOrders(user: prefs.getString('user') ?? 'NullUser', email: prefs.getString('email') ?? 'NullEmail')),

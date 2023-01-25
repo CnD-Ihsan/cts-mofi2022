@@ -1,4 +1,23 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+class AttachmentUtils {
+  AttachmentUtils._();
+  static Future openMap(XFile img, num woId) async {
+
+  }
+
+  static Future openMapString(String? query) async {
+    String googleUrl = 'https://www.google.com/maps/search/?api=1&query=$query';
+    Uri url = Uri.parse(googleUrl);
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      throw 'Could not open the map.';
+    }
+  }
+}
 
 class MapUtils {
   MapUtils._();

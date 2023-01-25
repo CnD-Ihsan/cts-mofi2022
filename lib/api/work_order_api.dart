@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/models/work_order_model.dart';
@@ -84,12 +86,12 @@ class WorkOrderApi{
           date: tempDate,
           time: tempTime,
           woType: data['wo_type'],
+          taskType: data['task_type'],
           lat: data['latitude'],
           lng: data['longitude'],
       );
       workOrderList.add(wo);
     }
-
     return workOrderList;
     }
 
@@ -116,6 +118,41 @@ class WorkOrderApi{
 
       Map temp = json.decode(response.body);
       return temp;
+    }
+
+    static attachImg(String type, XFile? img, num id) async {
+      File file = File(img!.path);
+      var uri = Uri.http('80.80.2.254:8080', '/api/workorder/upload-image/$id');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      var request = http.MultipartRequest('POST', uri);
+      request.headers.addAll({
+        "Authorization" : "Bearer $token",
+      });
+
+      request.files.add(await http.MultipartFile.fromPath('attachment[]', img!.path));
+      // print(await http.MultipartFile.fromPath('attachment', img!.path));
+
+      var response = await request.send();
+      print(await response.stream.bytesToString());
+      // Map jsonOnt = {
+      //   "attachment" : img
+      // };
+
+      // final response = await http.post(
+      //   uri,
+      //   headers: {
+      //     "useQueryString" : "true",
+      //     "Content-Type": "application/json",
+      //     "Authorization" : "Bearer $token",
+      //   },
+      //   body: jsonEncode(jsonOnt),
+      // );
+
+      // Map temp = json.decode(response.body);
+
+      return response;
     }
 
   static activateOnt(String? ontSn) async {

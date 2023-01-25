@@ -6,6 +6,7 @@ import 'package:wfm/api/utils.dart';
 import 'package:wfm/pages/submit_ont.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/api/work_order_api.dart';
+import 'package:wfm/pages/widgets/attachment_widget.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
 class ShowOrder extends StatefulWidget {
@@ -43,7 +44,6 @@ class _ShowOrderState extends State<ShowOrder> {
     });
     getAsync(widget.orderID);
     super.initState();
-
   }
 
   WorkOrder wo = WorkOrder(
@@ -81,15 +81,6 @@ class _ShowOrderState extends State<ShowOrder> {
     return Scaffold(
       appBar: AppBar(
         title: Text(wo.woName),
-        // actions: [
-        //   IconButton(
-        //     icon: Icon(Icons.maps_home_work),
-        //     onPressed: () {
-        //       MapUtils.openMap(wo.lat, wo.lng);
-        //     },
-        //   ),
-        //   // add more IconButton
-        // ],
       ),
       floatingActionButton: ontSubmitted
           ? null
@@ -106,7 +97,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   },
                 ),
               },
-              label: const Text('Submit ONT SN'),
+              label: const Text('Activate ONT'),
               icon: const Icon(Icons.camera),
             ),
       body: SingleChildScrollView(
@@ -154,11 +145,6 @@ class _ShowOrderState extends State<ShowOrder> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.person),
-                    // leading: const Text(
-                    //   'Requested By:',
-                    //   style: TextStyle(fontSize: 18),
-                    //   textAlign: TextAlign.start,
-                    // ),
                     title: Text(
                       wo.requestedBy,
                       style: textStyle(),
@@ -175,11 +161,6 @@ class _ShowOrderState extends State<ShowOrder> {
                     },
                     child: ListTile(
                       leading: const Icon(Icons.home),
-                      // leading: const Text(
-                      //   'Requested By:',
-                      //   style: TextStyle(fontSize: 18),
-                      //   textAlign: TextAlign.start,
-                      // ),
                       title: Text(
                         wo.address,
                         style: textStyle(),
@@ -207,11 +188,6 @@ class _ShowOrderState extends State<ShowOrder> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.broadcast_on_personal_outlined),
-                    // leading: const Text(
-                    //   'Requested By:',
-                    //   style: TextStyle(fontSize: 18),
-                    //   textAlign: TextAlign.start,
-                    // ),
                     title: Text(
                       wo.carrier,
                       style: textStyle(),
@@ -220,11 +196,6 @@ class _ShowOrderState extends State<ShowOrder> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.signal_cellular_alt),
-                    // leading: const Text(
-                    //   'Requested By:',
-                    //   style: TextStyle(fontSize: 18),
-                    //   textAlign: TextAlign.start,
-                    // ),
                     title: Text(
                       wo.speed,
                       style: textStyle(),
@@ -254,6 +225,7 @@ class _ShowOrderState extends State<ShowOrder> {
                 ],
               ),
             ),
+            newInstallationAttachments(context, wo.woId),
           ],
         ),
       ),

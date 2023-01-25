@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:wfm/api/work_order_api.dart';
-import 'package:wfm/pages/show_order.dart';
+import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
 class SubmitONT extends StatefulWidget {
@@ -79,6 +79,7 @@ class _SubmitONTState extends State<SubmitONT> {
                   if (mounted) {
                     // setState(() {});
                     // Navigator.pop(context);
+                    // Navigator.popUntil(context, ModalRoute.withName('/index'));
                   }
 
                   if (response.containsKey('data')) {
@@ -117,18 +118,67 @@ class _SubmitONTState extends State<SubmitONT> {
                       ),
                     );
                   }
-                  // Navigator.pop(context);
-                  Navigator.popUntil(context, ModalRoute.withName('/index'));
-                  // setState(() {});
-                  Navigator.pushReplacement<void, void>(
+
+                  Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (BuildContext context) =>  ShowOrder(orderID: soId,),
+                      builder: (BuildContext context) => ShowOrder(orderID: soId),
                     ),
+                    (route) => route.isFirst,
+                    // ModalRoute.of(context, ),
                   );
-                  // Navigator.popAndPushNamed(context, '/show');
+
+                  // Navigator.pushAndRemoveUntil<void>(
+                  //   context,
+                  //   MaterialPageRoute<void>(
+                  //     builder: (BuildContext context) => ShowOrder(orderID: soId),
+                  //   ),
+                  //       (Route<dynamic> route) => false,
+                  // );
+                  // Navigator.pop(context, () {
+                  //   setState(() {});
+                  // });
+                  // Future.delayed(Duration.zero, () {
+                  //   Navigator.popUntil(context, ModalRoute.withName('/index'));
+                  // });
+                  // Navigator.popUntil(context, ModalRoute.withName('/index'));
+                  // Navigator.popUntil(context, (route) => route.isFirst);
+                  // Navigator.pushReplacementNamed(context, '/show', arguments: soId);
+                  //     .then((value) {
+                  //   Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         settings: const RouteSettings(
+                  //           name: "/show",
+                  //         ),
+                  //         builder: (context) => ShowOrder(
+                  //               orderID: soId,
+                  //             )),
+                  //   );
+                  // });
+
+                  // await Future.delayed(const Duration(milliseconds: 1000));
+                  // setState(() {});
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //       settings: const RouteSettings(
+                  //         name: "/show",
+                  //       ),
+                  //       builder: (context) => ShowOrder(
+                  //         orderID: soId,
+                  //       )),
+                  // );
+
+                  // Navigator.pushReplacement<void, void>(
+                  //   context,
+                  //   MaterialPageRoute<void>(
+                  //     builder: (BuildContext context) =>  ShowOrder(orderID: soId,),
+                  //   ),
+                  // );
+                  // Navigator.popAndPushNamed(context, '/show', arguments: soId);
                 },
-                child: const Text('Submit ONT SN'),
+                child: const Text('Submit'),
               ),
             ),
           ],

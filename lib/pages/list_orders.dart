@@ -4,13 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/utils.dart';
 import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
-import 'package:wfm/pages/show_order.dart';
+import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/widgets/work_order_tiles.dart';
 
 class WorkOrders extends StatefulWidget {
   final String user, email;
-  const WorkOrders({Key? key, required this.user, required this.email}) : super(key: key);
+  const WorkOrders({Key? key, required this.user, required this.email})
+      : super(key: key);
 
   @override
   State<WorkOrders> createState() => _WorkOrdersState();
@@ -18,14 +19,18 @@ class WorkOrders extends StatefulWidget {
 
 class _WorkOrdersState extends State<WorkOrders> {
   var ctime, user, email;
-  String? filter;
+  final ValueNotifier<Map<String, String?>> filterNotifier = ValueNotifier({
+    'type': 'New Installation',
+    'status': 'Pending',
+  });
+  var refreshKey = GlobalKey<RefreshIndicatorState>();
   late SharedPreferences prefs;
 
   Map logoDict = {
-    'MXS' : 'maxis',
-    'CEL' : 'celcom',
-    'DGI' : 'digi',
-    'else' : 'cts',
+    'MXS': 'maxis',
+    'CEL': 'celcom',
+    'DGI': 'digi',
+    'else': 'cts',
   };
 
   @override
@@ -34,133 +39,158 @@ class _WorkOrdersState extends State<WorkOrders> {
     super.initState();
   }
 
-  getPrefs() async{
+  setFilter(String value, String type, Icon icon){
+
+    return ListTile(
+      leading: icon,
+      title: Text(value),
+      selectedColor: Colors.blue,
+      selected: filterNotifier.value[type] == value ? true : false,
+      onTap: () async {
+        filterNotifier.value[type] = value;
+        if(value == 'All Status'){
+          filterNotifier.value[type] = 'All Status';
+        }
+        if(value == 'All Orders'){
+          filterNotifier.value[type] = 'All Orders';
+        }
+        Navigator.pop(context);
+        setState(() {});
+      },
+    );
+  }
+
+  // setType(String type){
+  //   return ListTile(
+  //     leading: const Icon(Icons.circle_notifications),
+  //     title: Text(type),
+  //     selectedColor: Colors.blue,
+  //     selected: filterNotifier.value['type'] == 'Pending' ? true : false,
+  //     onTap: () async {
+  //       filterNotifier.value['status'] = 'Pending';
+  //       Navigator.pop(context);
+  //       setState(() {});
+  //     },
+  //   );
+  // }
+
+  getPrefs() async {
     user = widget.user;
     email = widget.email;
-    filter = 'Pending';
     prefs = await SharedPreferences.getInstance();
     user = prefs.getString('user') ?? 'Unauthorized';
-    email = prefs.getString('email')  ?? 'Unauthorized';
+    email = prefs.getString('email') ?? 'Unauthorized';
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${filter ?? 'All'} Orders'),
+        title: Text('${filterNotifier.value['type'] ?? 'All'} Orders'),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                  onPressed: () {
+                    Scaffold.of(context).openEndDrawer();
+                  },
+                  icon: Icon(Icons.filter_list_outlined));
+            }
+          )
+        ],
+      ),
+      endDrawer: Drawer(
+        child: Container(
+          color: Colors.white,
+          child: Center(
+            child: ValueListenableBuilder(
+              valueListenable: filterNotifier,
+              builder: (context, value, child) => ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  const ListTile(
+                    title: Text(
+                      'Filter Status',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const Divider(),
+                  setFilter('Pending', 'status',  const Icon(Icons.circle_notifications)),
+                  setFilter('Completed', 'status',  const Icon(Icons.check_circle)),
+                  setFilter('Cancelled', 'status',  const Icon(Icons.cancel)),
+                  setFilter('Returned', 'status',  const Icon(Icons.arrow_circle_left_sharp)),
+                  setFilter('All Status', 'status',  const Icon(Icons.circle)),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              accountName: Text(user),
-              accountEmail: Text(email),
-              currentAccountPicture: CircleAvatar(
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/img/avatar_default.png',
-                    fit: BoxFit.cover,
-                    width: 90,
-                    height: 90,
+        child: ValueListenableBuilder(
+          valueListenable: filterNotifier,
+          builder: (context, value, child) => ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                accountName: Text(user),
+                accountEmail: Text(email),
+                currentAccountPicture: CircleAvatar(
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/img/avatar_default.png',
+                      fit: BoxFit.cover,
+                      width: 90,
+                      height: 90,
+                    ),
+                  ),
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  image: DecorationImage(
+                    fit: BoxFit.fill,
+                    image: AssetImage('assets/img/bg-prof.jpg'),
                   ),
                 ),
               ),
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                image: DecorationImage(
-                    fit: BoxFit.fill,
-                    image: AssetImage('assets/img/bg-prof.jpg'),
-                ),
+              setFilter('New Installation', 'type',  const Icon(Icons.build)),
+              setFilter('Termination', 'type',  const Icon(Icons.dnd_forwardslash)),
+              setFilter('Troubleshoot', 'type',  const Icon(Icons.settings)),
+              setFilter('All Orders', 'type',  const Icon(Icons.select_all)),
+              const Divider(),
+              ListTile(
+                title: const Text('Speed Test'),
+                leading: const Icon(Icons.speed),
+                onTap: () async {
+                  SpeedTestUtils.runSpeedTest();
+                },
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.circle_notifications),
-              title: const Text('Pending'),
-              selectedColor: Colors.blue,
-              selected: filter == 'Pending' ? true : false,
-              onTap: () async {
-                filter = 'Pending';
-                Navigator.pop(context);
-                setState((){});
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.check_circle),
-              title: const Text('Completed'),
-              selectedColor: Colors.blue,
-              selected: filter == 'Completed' ? true : false,
-              onTap: () async {
-                filter = 'Completed';
-                Navigator.pop(context);
-                setState((){});
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.cancel),
-              title: const Text('Cancelled'),
-              selectedColor: Colors.blue,
-              selected: filter == 'Cancelled' ? true : false,
-              onTap: () async {
-                filter = 'Cancelled';
-                Navigator.pop(context);
-                setState((){});
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.arrow_circle_left_sharp),
-              title: const Text('Returned'),
-              selectedColor: Colors.blue,
-              selected: filter == 'Returned' ? true : false,
-              onTap: () async {
-                filter = 'Returned';
-                Navigator.pop(context);
-                setState((){});
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.circle),
-              title: const Text('Show All'),
-              selectedColor: Colors.blue,
-              selected: filter == null ? true : false,
-              onTap: () async {
-                filter = null;
-                Navigator.pop(context);
-                setState((){});
-              },
-            ),
-            const Divider(),
-            ListTile(
-              title: const Text('Speed Test'),
-              leading: const Icon(Icons.speed),
-              onTap: () async {
-                SpeedTestUtils.runSpeedTest();
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //       builder: (context) => const SpeedTest()),
-                // );
-              },
-            ),
-            ListTile(
-              title: const Text('Log Out'),
-              leading: const Icon(Icons.exit_to_app),
-              onTap: () async {
-                final SharedPreferences prefs = await SharedPreferences.getInstance();
-                prefs.remove('user');
-                prefs.remove('email');
-                prefs.remove('token');
-                if(mounted){
-                  Navigator.pushReplacement<void, void>(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => const Landing(),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
+              ListTile(
+                title: const Text('Log Out'),
+                leading: const Icon(Icons.exit_to_app),
+                onTap: () async {
+                  final SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  prefs.remove('user');
+                  prefs.remove('email');
+                  prefs.remove('token');
+                  if (mounted) {
+                    Navigator.pushReplacement<void, void>(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => const Landing(),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
       body: WillPopScope(
@@ -185,9 +215,19 @@ class _WorkOrdersState extends State<WorkOrders> {
                   if (snapshot.hasData) {
                     List<WorkOrder> list = snapshot.data!;
 
-                    if(filter != null){
-                      list = list.where((workOrder) => workOrder.status == filter).toList();
+                    if (filterNotifier.value['status'] != 'All Status') {
+                      list = list
+                          .where((workOrder) =>
+                              workOrder.status == filterNotifier.value['status'])
+                          .toList();
                     }
+                    if (filterNotifier.value['type'] != 'All Orders') {
+                      list = list
+                          .where((workOrder) =>
+                      workOrder.taskType == filterNotifier.value['type'])
+                          .toList();
+                    }
+
                     return ListView.builder(
                       padding: const EdgeInsets.all(10.0),
                       itemCount: list.length,
@@ -195,34 +235,34 @@ class _WorkOrdersState extends State<WorkOrders> {
                         WorkOrder wo = list[list.length - index - 1];
                         var logo = 'else';
 
-                        try{
-                          var temp = wo.woName.substring(0,3);
-                          if(logoDict.containsKey(temp)){
+                        try {
+                          var temp = wo.woName.substring(0, 3);
+                          if (logoDict.containsKey(temp)) {
                             logo = temp;
                           }
-                        }catch(e){
+                        } catch (e) {
                           print(e);
                         }
                         logo = logoDict[logo];
 
                         return InkWell(
-                            onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        settings: const RouteSettings(
-                                          name: "/show",
-                                        ),
-                                        builder: (context) => ShowOrder(
-                                              orderID: wo.soId,
-                                            )),
-                                  );
-                                },
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  settings: const RouteSettings(
+                                    name: "/show",
+                                  ),
+                                  builder: (context) => ShowOrder(
+                                        orderID: wo.soId,
+                                      )),
+                            );
+                          },
                           child: CustomListItemTwo(
                             thumbnail: Image.asset(
-                                  'assets/img/logo/$logo.png',
-                                  fit: BoxFit.fitWidth,
-                                ),
+                              'assets/img/logo/$logo.png',
+                              fit: BoxFit.fitWidth,
+                            ),
                             title: wo.woName,
                             subtitle: wo.address,
                             author: wo.woType ?? 'Undefined',
@@ -232,13 +272,25 @@ class _WorkOrdersState extends State<WorkOrders> {
                         );
                       },
                     );
-                  } else {
+                  } else if(snapshot.hasError){
                     return const Center(
-                      child: CircularProgressIndicator(),
+                      child: Text('Empty order'),
                     );
                   }
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 })),
       ),
     );
+  }
+
+  Future<void> refreshList() async {
+    refreshKey.currentState?.show(
+        atTop:
+        true); // change atTop to false to show progress indicator at bottom
+    await Future.delayed(Duration(seconds: 2)); //wait here for 2 second
+    setState(() {
+    });
   }
 }

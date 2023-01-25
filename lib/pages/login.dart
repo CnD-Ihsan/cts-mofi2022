@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:wfm/models/login_model.dart';
 import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/api/login_api.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatelessWidget {
   const Login({Key? key}) : super(key: key);
