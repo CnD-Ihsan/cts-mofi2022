@@ -3,8 +3,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 class AttachmentUtils {
   AttachmentUtils._();
-  static Future openMap(XFile img, num woId) async {
+  static Future deleteImgAttachment(num woId, String img) async {
+    String googleUrl = 'https://www.google.com/maps/search/?api=1&query=';
+    Uri url = Uri.parse(googleUrl);
 
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      throw 'Could not open the map.';
+    }
   }
 
   static Future openMapString(String? query) async {

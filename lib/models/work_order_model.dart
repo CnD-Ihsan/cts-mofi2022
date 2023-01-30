@@ -16,6 +16,7 @@ class WorkOrder {
   final String? endDate;
   final double? lat;
   final double? lng;
+  final List<String>? img;
 
   //Derived work order details
   String? date;
@@ -43,6 +44,7 @@ class WorkOrder {
     this.endDate = '',
     this.date = '',
     this.time = '',
+    this.img = const [],
     this.lat = 0.0,
     this.lng = 0.0,
 

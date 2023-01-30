@@ -42,6 +42,7 @@ class WorkOrderApi{
         startDate: data['appointment_date'],
         time: tempTime,
         date: tempDate,
+        img: await getImgAttachments(data['wo_id']),
         lat: double.parse(data['latitude']),
         lng: double.parse(data['longitude']),
 
@@ -120,40 +121,91 @@ class WorkOrderApi{
       return temp;
     }
 
-    static attachImg(String type, XFile? img, num id) async {
+    static uploadImgAttachment(String type, XFile? img, num id) async {
       File file = File(img!.path);
       var uri = Uri.http('80.80.2.254:8080', '/api/workorder/upload-image/$id');
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
 
       var request = http.MultipartRequest('POST', uri);
-      request.headers.addAll({
-        "Authorization" : "Bearer $token",
-      });
+      request.headers.addAll({"Authorization" : "Bearer $token",});
+      request.fields.addAll({"type": type});
 
       request.files.add(await http.MultipartFile.fromPath('attachment[]', img!.path));
       // print(await http.MultipartFile.fromPath('attachment', img!.path));
 
       var response = await request.send();
       print(await response.stream.bytesToString());
-      // Map jsonOnt = {
-      //   "attachment" : img
-      // };
 
-      // final response = await http.post(
-      //   uri,
-      //   headers: {
-      //     "useQueryString" : "true",
-      //     "Content-Type": "application/json",
-      //     "Authorization" : "Bearer $token",
-      //   },
-      //   body: jsonEncode(jsonOnt),
-      // );
+      if(response.statusCode >= 200 && response.statusCode <= 300){
+        return getImgAttachments(id);
+      }else{
+        return response;
+      }
+    }
 
-      // Map temp = json.decode(response.body);
+  static deleteImgAttachment(num id, String path) async {
+    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/remove_image/$id/$path');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
 
+    var response = await http.post(uri, headers: {"Authorization" : "Bearer $token",});
+    print(token);
+    print(await response.body);
+
+    if(response.statusCode >= 200 && response.statusCode <= 300){
+      return getImgAttachments(id);
+    }else{
       return response;
     }
+  }
+
+  static uploadMultiImgAttachment(String type, List<XFile?> img, num id) async {
+    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/upload-image/$id');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    var request = http.MultipartRequest('POST', uri);
+    request.headers.addAll({"Authorization" : "Bearer $token",});
+    request.fields.addAll({"type": type});
+
+    List<http.MultipartFile> files = [];
+    img.forEach((element) async {
+      request.files.add(await http.MultipartFile.fromPath('attachment[]', element!.path));
+    });
+
+    var response = await request.send();
+    print(await response.stream.bytesToString());
+
+    if(response.statusCode >= 200 && response.statusCode <= 300){
+      return getImgAttachments(id);
+    }else{
+      return response;
+    }
+  }
+
+  static getImgAttachments(num id) async {
+    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/get-image', {'data_id' : id.toString()});
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    final response = await http.get(
+      uri,
+      headers: {
+        "Authorization" : "Bearer $token",
+      },
+    );
+
+    var img = json.decode(response.body)['ontsn'];
+
+    if( img != null){
+      List<String> imgList = List.from(img);
+      return imgList;
+    }else{
+      return null;
+    }
+  }
 
   static activateOnt(String? ontSn) async {
     var uri = Uri.http('80.80.2.254:8080', '/api/workorder/submitOnt');

@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:wfm/api/utils.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:wfm/pages/show_new_installation.dart';
+import 'package:wfm/pages/widgets/attachment_widget.dart';
 
-snackbarMessage(BuildContext context, String? message){
+snackbarMessage(BuildContext context, String? message) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
       content: Row(
         children: [
-          Text(message ?? 'Missing'),
+          Expanded(child: Text(message ?? 'Missing')),
           const Icon(
             Icons.check_circle,
             color: Colors.white,
@@ -17,6 +19,25 @@ snackbarMessage(BuildContext context, String? message){
         ],
       ),
       backgroundColor: Colors.green,
+      duration: const Duration(milliseconds: 2000),
+    ),
+  );
+}
+
+redSnackbarMessage(BuildContext context, String? message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Row(
+        children: [
+          Expanded(child: Text(message ?? 'Missing')),
+          const Icon(
+            Icons.error_outline,
+            color: Colors.white,
+          ),
+        ],
+      ),
+      backgroundColor: Colors.red,
       duration: const Duration(milliseconds: 2000),
     ),
   );
@@ -45,6 +66,26 @@ alertMessage(BuildContext context, String message) {
       return alert;
     },
   );
+}
+
+loadingScreen(BuildContext context){
+  return Future.delayed(Duration.zero, () {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                Container(
+                    margin: const EdgeInsets.only(left: 7),
+                    child: const Text("Loading...")),
+              ],
+            ),
+          );
+        });
+  });
 }
 
 mapPromptDialog(BuildContext context, String address) {
@@ -83,7 +124,7 @@ mapPromptDialog(BuildContext context, String address) {
   );
 }
 
-imagePickerPrompt(BuildContext context, String type, num woId) {
+imagePickerPrompt(BuildContext context, String type, num woId, Function(List<String>) refresh) {
   AlertDialog alert = AlertDialog(
     title: const Text('Select image source'),
     content: Column(
@@ -97,12 +138,24 @@ imagePickerPrompt(BuildContext context, String type, num woId) {
             textAlign: TextAlign.start,
           ),
           onTap: () async {
+            bool ok = true;
             Navigator.pop(context);
             final XFile? image = await ImagePicker()
-                .pickImage(source: ImageSource.camera);
-            if(image!.path.isNotEmpty){
-              WorkOrderApi.attachImg(type, image, woId);
-            }else{
+                .pickImage(source: ImageSource.camera, imageQuality: 25);
+            if (image!.path.isNotEmpty) {
+              try{
+                refresh(await WorkOrderApi.uploadImgAttachment(type, image, woId));
+              }catch(e){
+                print(e);
+                redSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists');
+                ok = false;
+              }finally{
+                if(ok){
+                  snackbarMessage(context, 'Image uploaded');
+                }
+              }
+            } else {
+              redSnackbarMessage(context, 'No image was selected.');
               return;
             }
           },
@@ -114,13 +167,77 @@ imagePickerPrompt(BuildContext context, String type, num woId) {
             textAlign: TextAlign.start,
           ),
           onTap: () async {
+            bool ok = true;
             Navigator.pop(context);
-            final XFile? image = await ImagePicker()
-                .pickImage(source: ImageSource.gallery);
+            final List<XFile> image =
+                await ImagePicker().pickMultiImage(imageQuality: 25);
+            if (image!.isNotEmpty) {
+              try{
+                refresh(await WorkOrderApi.uploadMultiImgAttachment(type, image, woId));
+              }catch(e){
+                print(e);
+                redSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists');
+                ok = false;
+              }finally{
+                if(ok){
+                  snackbarMessage(context, 'Image uploaded');
+                }
+              }
+            } else {
+              return;
+            }
           },
         ),
       ],
     ),
+  );
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+}
+
+deleteAttachment(BuildContext context, num woId, String img, Function(List<String>) refresh) {
+  AlertDialog alert = AlertDialog(
+    title: const ListTile(
+      title: Text('Delete image?'),
+      leading: Icon(Icons.error_outline),
+    ),
+    actions: <Widget>[
+      // const Divider(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          TextButton(
+            child: const Center(child: Text('Cancel')),
+            onPressed: () async {
+              Navigator.pop(context);
+              return;
+            },
+          ),
+          TextButton(
+            child: const Center(child: Text('Confirm')),
+            onPressed: () async {
+              bool ok = true;
+              Navigator.pop(context);
+              try{
+                refresh(await WorkOrderApi.deleteImgAttachment(woId, img));
+              }catch(e){
+                redSnackbarMessage(context, 'Failed to delete image. Please contact admin if issue persists');
+                ok = false;
+              }finally{
+                if(ok){
+                  snackbarMessage(context, 'Successfully deleted');
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    ],
   );
   showDialog(
     barrierDismissible: true,

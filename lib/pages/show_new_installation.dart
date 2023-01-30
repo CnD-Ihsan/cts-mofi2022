@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/utils.dart';
+import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/submit_ont.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/api/work_order_api.dart';
@@ -21,29 +22,19 @@ class _ShowOrderState extends State<ShowOrder> {
   num orderID = 0;
   bool ontSubmitted = false;
   Stream<dynamic>? bc;
+  List<String> listImage = [];
   var txt = TextEditingController();
 
   @override
   void initState() {
-    Future.delayed(Duration.zero, () {
-      showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Row(
-                children: [
-                  const CircularProgressIndicator(),
-                  Container(
-                      margin: const EdgeInsets.only(left: 7),
-                      child: const Text("Loading...")),
-                ],
-              ),
-            );
-          });
-    });
+    loadingScreen(context);
     getAsync(widget.orderID);
     super.initState();
+  }
+
+  void refresh(List<String> img) async {
+      listImage = img;
+      setState((){});
   }
 
   WorkOrder wo = WorkOrder(
@@ -64,6 +55,7 @@ class _ShowOrderState extends State<ShowOrder> {
     try {
       prefs = await SharedPreferences.getInstance();
       wo = await WorkOrderApi.getWorkOrder(id);
+      listImage = wo.img ?? [];
       if ((wo.ontSn != null && !wo.ontSn.toString().contains(' '))) {
         ontSubmitted = true;
       }
@@ -78,6 +70,8 @@ class _ShowOrderState extends State<ShowOrder> {
 
   @override
   Widget build(BuildContext context) {
+    final imageList = ImageNotifier(wo.img ?? ['']);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(wo.woName),
@@ -225,7 +219,33 @@ class _ShowOrderState extends State<ShowOrder> {
                 ],
               ),
             ),
-            newInstallationAttachments(context, wo.woId),
+            Container(
+              width: 160.0,
+              child: Center(
+                child: ListTile(
+                  title: const Icon(
+                    Icons.add_circle_outline,
+                    size: 45,
+                  ),
+                  subtitle: const Text(
+                    'Add image',
+                    textAlign: TextAlign.center,
+                  ),
+                  onTap: () async {
+                    imagePickerPrompt(context, 'ontsn', wo.woId, refresh);
+                    // final XFile? image = await ImagePicker()
+                    //     .pickImage(source: ImageSource.gallery);
+                  },
+                ),
+              ),
+            ),
+            wo.img == null ? const Divider() : newInstallationAttachments(context, wo.woId, listImage, refresh),
+            // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
+            // FutureBuilder(
+            //     future: WorkOrderApi.getImgAttachments(wo.woId),
+            //     builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+            //       return Attachments(woId: wo.woId, urlImages: wo.img ?? []);
+            // })
           ],
         ),
       ),
@@ -235,25 +255,16 @@ class _ShowOrderState extends State<ShowOrder> {
   textStyle() {
     return const TextStyle(fontSize: 14, color: Colors.black87);
   }
+}
 
-  alertDialog(BuildContext context) {
-    AlertDialog alert = AlertDialog(
-      content: const Text('Map Coordinate Error.'),
-      actions: <Widget>[
-        TextButton(
-          child: const Center(child: Text('Confirm')),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ],
-    );
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
+class ImageNotifier with ChangeNotifier {
+  List<String> _img;
+
+  ImageNotifier(this._img);
+  List<String> get img => _img;
+
+  void updateList(num id) async {
+    _img = await WorkOrderApi.getImgAttachments(id);
+    notifyListeners();
   }
 }
