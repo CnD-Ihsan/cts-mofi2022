@@ -9,6 +9,7 @@ class WorkOrder {
   final String status;
   final String requestedBy;
   final String address;
+  final String? progress;
   final String? woType;
   final String? taskType;
   final String? createdBy;
@@ -16,7 +17,7 @@ class WorkOrder {
   final String? endDate;
   final double? lat;
   final double? lng;
-  final List<String>? img;
+  final Map img;
 
   //Derived work order details
   String? date;
@@ -25,7 +26,7 @@ class WorkOrder {
   // final num soId;
   // final String soType;
   final String custContact;
-  // final String custAddress;
+  final String custName;
   final String carrier;
   final String speed;
   final String? ontSn;
@@ -37,6 +38,7 @@ class WorkOrder {
     required this.status,
     required this.requestedBy,
     required this.address,
+    this.progress = '',
     this.woType = '',
     this.taskType = '',
     this.createdBy = '',
@@ -44,21 +46,21 @@ class WorkOrder {
     this.endDate = '',
     this.date = '',
     this.time = '',
-    this.img = const [],
+    this.img = const {},
     this.lat = 0.0,
     this.lng = 0.0,
 
     // this.soId,
     // this.soType,
     this.custContact = '',
-    // this.custAddress,
+    this.custName = '',
     this.carrier = '',
     this.speed = '',
     this.ontSn,
   });
 
   factory WorkOrder.fromJson(Map<WorkOrder, dynamic> json){
-
+    //not updated as it is unused, yet.
     return WorkOrder(
       woId: json['ftth']['wo_id'] as num,
       soId: json['ftth']['service_order'] as num,
@@ -75,6 +77,7 @@ class WorkOrder {
       // soId: json['so_id'] as num,
       // soType: json['order_type'] as String,
       custContact: json['ftth']['cust_contact'] as String,
+      custName: json['ftth']['cust_name'] as String,
       // custAddress: json['cust_addr'] as String,
       speed: json['ftth']['package_speed'] as String,
       carrier: json['ftth']['carrier'] as String,

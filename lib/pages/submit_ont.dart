@@ -76,12 +76,7 @@ class _SubmitONTState extends State<SubmitONT> {
                   }
                   showLoaderDialog(context);
                   response = await WorkOrderApi.submitOnt(soId, txt.text);
-                  if (mounted) {
-                    // setState(() {});
-                    // Navigator.pop(context);
-                    // Navigator.popUntil(context, ModalRoute.withName('/index'));
-                  }
-
+                  if (mounted) {}
                   if (response.containsKey('data')) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -127,56 +122,6 @@ class _SubmitONTState extends State<SubmitONT> {
                     (route) => route.isFirst,
                     // ModalRoute.of(context, ),
                   );
-
-                  // Navigator.pushAndRemoveUntil<void>(
-                  //   context,
-                  //   MaterialPageRoute<void>(
-                  //     builder: (BuildContext context) => ShowOrder(orderID: soId),
-                  //   ),
-                  //       (Route<dynamic> route) => false,
-                  // );
-                  // Navigator.pop(context, () {
-                  //   setState(() {});
-                  // });
-                  // Future.delayed(Duration.zero, () {
-                  //   Navigator.popUntil(context, ModalRoute.withName('/index'));
-                  // });
-                  // Navigator.popUntil(context, ModalRoute.withName('/index'));
-                  // Navigator.popUntil(context, (route) => route.isFirst);
-                  // Navigator.pushReplacementNamed(context, '/show', arguments: soId);
-                  //     .then((value) {
-                  //   Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         settings: const RouteSettings(
-                  //           name: "/show",
-                  //         ),
-                  //         builder: (context) => ShowOrder(
-                  //               orderID: soId,
-                  //             )),
-                  //   );
-                  // });
-
-                  // await Future.delayed(const Duration(milliseconds: 1000));
-                  // setState(() {});
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //       settings: const RouteSettings(
-                  //         name: "/show",
-                  //       ),
-                  //       builder: (context) => ShowOrder(
-                  //         orderID: soId,
-                  //       )),
-                  // );
-
-                  // Navigator.pushReplacement<void, void>(
-                  //   context,
-                  //   MaterialPageRoute<void>(
-                  //     builder: (BuildContext context) =>  ShowOrder(orderID: soId,),
-                  //   ),
-                  // );
-                  // Navigator.popAndPushNamed(context, '/show', arguments: soId);
                 },
                 child: const Text('Submit'),
               ),

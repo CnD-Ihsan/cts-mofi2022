@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
-import 'package:wfm/pages/show_new_installation.dart';
+import 'package:wfm/pages/return_order.dart';
 import 'package:wfm/pages/submit_ont.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/widgets/attachment_widget.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ShowOrder extends StatefulWidget {
   final num orderID;
@@ -20,21 +23,84 @@ class ShowOrder extends StatefulWidget {
 
 class _ShowOrderState extends State<ShowOrder> {
   num orderID = 0;
-  bool ontSubmitted = false;
+  bool statusChange = false;
   Stream<dynamic>? bc;
-  List<String> listImage = [];
+  Map listImage = {};
   var txt = TextEditingController();
+  final GlobalKey _scrollAttachmentKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     loadingScreen(context);
-    getAsync(widget.orderID);
+    getAsync(widget.orderID, true);
     super.initState();
   }
 
-  void refresh(List<String> img) async {
+  void refresh(Map img, String action) async {
+      print(img);
+      await getAsync(widget.orderID, false);
+      if(mounted){}
+      if(action == 'delete'){
+        snackbarMessage(context, 'Successfully deleted');
+        Navigator.pop(context);
+      }
+      else{
+        snackbarMessage(context, 'Image uploaded');
+      }
       listImage = img;
-      setState((){});
+
+      // initState();
+      // setState((){});
+  }
+
+  FloatingActionButton? currentButton(String? progress){
+    if(progress == 'activation'){
+      return FloatingActionButton.extended(
+        onPressed: () => {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (BuildContext context) {
+              // Returning SizedBox instead of a Container
+              return SubmitONT(
+                soId: wo.soId,
+              );
+            },
+          ),
+        },
+        label: const Text('Activate ONT'),
+        icon: const Icon(Icons.camera),
+      );
+    }else if(progress == 'attachment'){
+      return FloatingActionButton.extended(
+        onPressed: () {
+          // get the position of the "attachment" section relative to the top of the screen
+          RenderBox? renderBox = _scrollAttachmentKey.currentContext?.findRenderObject() as RenderBox?;
+          double offset = renderBox!.localToGlobal(Offset.zero).dy;
+
+          // scroll to the position of the "attachment" section
+          _scrollController.animateTo(
+            offset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        },
+        label: const Text('Attachments*'),
+        icon: const Icon(Icons.file_download),
+      );
+    }else if(progress == 'completion'){
+      return FloatingActionButton.extended(
+        onPressed: () async => {
+          // alertMessage(context, 'Submit order completion?'),
+          await WorkOrderApi.requestVerification(wo.soId, wo.ontSn),
+        },
+        label: const Text('Complete Order'),
+        icon: const Icon(Icons.check_circle),
+      );
+    }else{
+      return null;
+    }
   }
 
   WorkOrder wo = WorkOrder(
@@ -51,56 +117,124 @@ class _ShowOrderState extends State<ShowOrder> {
 
   late SharedPreferences prefs;
 
-  getAsync(num id) async {
+  getAsync(num id, bool needPop) async {
     try {
       prefs = await SharedPreferences.getInstance();
       wo = await WorkOrderApi.getWorkOrder(id);
-      listImage = wo.img ?? [];
-      if ((wo.ontSn != null && !wo.ontSn.toString().contains(' '))) {
-        ontSubmitted = true;
-      }
+      listImage = wo.img;
     } catch (e) {
       print(e);
     }
     if (mounted) {
       setState(() {});
-      Navigator.pop(context);
+      if(needPop){
+        Navigator.pop(context);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final imageList = ImageNotifier(wo.img ?? ['']);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(wo.woName),
+        actions: wo.status != 'Pending' ? null : [
+          Builder(
+              builder: (context) {
+                return PopupMenuButton(
+                  icon: const Icon(Icons.assignment_return_outlined),
+                  position: PopupMenuPosition.under,
+                  // color: Colors.blue,
+                  tooltip: "Order Actions",
+                  constraints: const BoxConstraints(),
+                  // onSelected: (newValue) { // add this property
+                  //   setState(() {
+                  //     // _value = newValue; // it gives the value which is selected
+                  //   });
+                  // },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      height: 30,
+                      value: 0,
+                      onTap: () async {
+                        await Future.delayed(const Duration(milliseconds: 10));
+                        if(mounted){}
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ReturnOrder(
+                                woId: wo.woId,
+                                soId: wo.soId,
+                                refresh: refresh,
+                              )),
+                        );
+                      },
+                      child: const Text("Return Order", style: TextStyle(color: Colors.red),),
+                    ),
+                  ],
+                );
+              }
+          )
+        ],
       ),
-      floatingActionButton: ontSubmitted
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => {
-                showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (BuildContext context) {
-                    // Returning SizedBox instead of a Container
-                    return SubmitONT(
-                      soId: wo.soId,
-                    );
-                  },
-                ),
-              },
-              label: const Text('Activate ONT'),
-              icon: const Icon(Icons.camera),
-            ),
+      floatingActionButton: currentButton(wo.progress),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(
-              height: 10,
+              height: 20,
             ),
+            wo.status != 'Returned' || wo.status != 'Cancelled' ?
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    const Text(
+                      'Activation',
+                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                      textAlign: TextAlign.start,
+                    ),
+                    wo.progress == 'activation' ?
+                    const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                    const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                  ],
+                ),
+                Icon(Icons.chevron_right, color: wo.progress == 'activation' ? Colors.black : Colors.blue,),
+                Column(
+                  children: [
+                    Text(
+                      'Attachment',
+                      style: TextStyle(fontSize: 12, color: wo.progress == 'activation' ? Colors.black : Colors.blue,),
+                      textAlign: TextAlign.start,
+                    ),
+                    wo.progress == 'attachment' ?
+                    const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                        wo.progress == 'activation' ?
+                        const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
+                        const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                  ],
+                ),
+                Icon(Icons.chevron_right, color: wo.progress == 'activation' || wo.progress == 'attachment' ? Colors.black : Colors.blue,),
+                Column(
+                  children: [
+                    Text(
+                      'Completion',
+                      style: TextStyle(fontSize: 12, color: wo.progress == 'activation' || wo.progress == 'attachment' ? Colors.black : Colors.blue,),
+                      textAlign: TextAlign.start,
+                    ),
+                    wo.progress == 'completion' ?
+                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                      wo.progress == 'activation' || wo.progress == 'attachment' ?
+                      const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
+                      const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                  ],
+                ),
+              ],
+            ) : const Divider(),
             const ListTile(
               title: Text(
                 'Work Order Details',
@@ -138,7 +272,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.person),
+                    leading: const Icon(Icons.assignment_ind_outlined),
                     title: Text(
                       wo.requestedBy,
                       style: textStyle(),
@@ -170,7 +304,7 @@ class _ShowOrderState extends State<ShowOrder> {
             ),
             const ListTile(
               title: Text(
-                'ONT Details',
+                'Customer Details',
                 style: TextStyle(fontSize: 18),
                 textAlign: TextAlign.start,
               ),
@@ -197,15 +331,59 @@ class _ShowOrderState extends State<ShowOrder> {
                     ),
                   ),
                   ListTile(
+                      leading: const Icon(Icons.person),
+                      title: Text(
+                        wo.custName,
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                      trailing: Wrap(
+                        spacing: 12,
+                        children: [
+                          InkWell(
+                            onTap: () async {
+                              final Uri url = Uri.parse('https://wa.me/60128112302');
+                              if(await canLaunchUrl(url)){
+                              launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: const Icon(Icons.whatsapp),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              final Uri url = Uri.parse('tel:${wo.custContact}');
+                              if(await canLaunchUrl(url)){
+                              launchUrl(url);
+                              }
+                            },
+                            child: const Icon(Icons.phone),
+                          ),
+                        ],)
+                  ),
+                  // ListTile(
+                  //   leading: const Icon(Icons.phone),
+                  //   onTap: () async {
+                  //     final Uri url = Uri.parse('tel:${wo.custContact}');
+                  //     if(await canLaunchUrl(url)){
+                  //       launchUrl(url);
+                  //     }
+                  //   },
+                  //   title: Text(
+                  //     wo.custContact,
+                  //     style: textStyle(),
+                  //     textAlign: TextAlign.start,
+                  //   ),
+                  // ),
+                  ListTile(
                     leading: const Text(
                       'ONT',
                       style: TextStyle(fontSize: 14),
                       textAlign: TextAlign.start,
                     ),
                     title: Text(
-                      ontSubmitted
+                      wo.progress != 'activation'
                           ? wo.ontSn.toString()
-                          : 'N/A (Action Needed)',
+                          : 'Not Activated',
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -213,33 +391,14 @@ class _ShowOrderState extends State<ShowOrder> {
                   // SubmitONT(
                   //   ontID: wo.ontActId,
                   // ),
-                  const SizedBox(
+                  SizedBox(
+                    key: _scrollAttachmentKey,
                     height: 20,
                   ),
                 ],
               ),
             ),
-            Container(
-              width: 160.0,
-              child: Center(
-                child: ListTile(
-                  title: const Icon(
-                    Icons.add_circle_outline,
-                    size: 45,
-                  ),
-                  subtitle: const Text(
-                    'Add image',
-                    textAlign: TextAlign.center,
-                  ),
-                  onTap: () async {
-                    imagePickerPrompt(context, 'ontsn', wo.woId, refresh);
-                    // final XFile? image = await ImagePicker()
-                    //     .pickImage(source: ImageSource.gallery);
-                  },
-                ),
-              ),
-            ),
-            wo.img == null ? const Divider() : newInstallationAttachments(context, wo.woId, listImage, refresh),
+            wo.progress == 'activation' ? const Divider() : newInstallationAttachments(context, wo.woId, listImage, refresh, _scrollAttachmentKey),
             // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
             // FutureBuilder(
             //     future: WorkOrderApi.getImgAttachments(wo.woId),
@@ -254,17 +413,5 @@ class _ShowOrderState extends State<ShowOrder> {
 
   textStyle() {
     return const TextStyle(fontSize: 14, color: Colors.black87);
-  }
-}
-
-class ImageNotifier with ChangeNotifier {
-  List<String> _img;
-
-  ImageNotifier(this._img);
-  List<String> get img => _img;
-
-  void updateList(num id) async {
-    _img = await WorkOrderApi.getImgAttachments(id);
-    notifyListeners();
   }
 }

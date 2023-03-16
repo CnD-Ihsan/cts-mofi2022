@@ -19,7 +19,7 @@ class AttachmentUtils {
     Uri url = Uri.parse(googleUrl);
 
     if (await canLaunchUrl(url)) {
-      await launchUrl(url);
+      await launchUrl(url, mode:LaunchMode.externalApplication);
     } else {
       throw 'Could not open the map.';
     }
@@ -33,7 +33,7 @@ class MapUtils {
     Uri url = Uri.parse(googleUrl);
 
     if (await canLaunchUrl(url)) {
-      await launchUrl(url);
+      await launchUrl(url, mode:LaunchMode.externalApplication);
     } else {
       throw 'Could not open the map.';
     }

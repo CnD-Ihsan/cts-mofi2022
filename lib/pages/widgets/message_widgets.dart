@@ -45,22 +45,34 @@ redSnackbarMessage(BuildContext context, String? message) {
 
 alertMessage(BuildContext context, String message) {
   AlertDialog alert = AlertDialog(
+    contentPadding: EdgeInsets.only(top: 10),
     content: ListTile(
       title: Text(message),
       leading: const Icon(Icons.error_outline),
     ),
     actions: <Widget>[
       const Divider(),
-      TextButton(
-        child: const Center(child: Text('Confirm')),
-        onPressed: () {
-          Navigator.pop(context);
-        },
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          TextButton(
+            child: const Center(child: Text('Cancel')),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Center(child: Text('Confirm')),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
       ),
     ],
   );
   showDialog(
-    barrierDismissible: false,
+    barrierDismissible: true,
     context: context,
     builder: (BuildContext context) {
       return alert;
@@ -124,7 +136,7 @@ mapPromptDialog(BuildContext context, String address) {
   );
 }
 
-imagePickerPrompt(BuildContext context, String type, num woId, Function(List<String>) refresh) {
+imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, String) refresh) {
   AlertDialog alert = AlertDialog(
     title: const Text('Select image source'),
     content: Column(
@@ -144,14 +156,14 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(List<Str
                 .pickImage(source: ImageSource.camera, imageQuality: 25);
             if (image!.path.isNotEmpty) {
               try{
-                refresh(await WorkOrderApi.uploadImgAttachment(type, image, woId));
+                refresh(await WorkOrderApi.uploadImgAttachment(type, image, woId), 'upload');
               }catch(e){
                 print(e);
                 redSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists');
                 ok = false;
               }finally{
                 if(ok){
-                  snackbarMessage(context, 'Image uploaded');
+                  // snackbarMessage(context, 'Image uploaded');
                 }
               }
             } else {
@@ -167,21 +179,15 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(List<Str
             textAlign: TextAlign.start,
           ),
           onTap: () async {
-            bool ok = true;
             Navigator.pop(context);
             final List<XFile> image =
                 await ImagePicker().pickMultiImage(imageQuality: 25);
-            if (image!.isNotEmpty) {
+            if (image.isNotEmpty) {
               try{
-                refresh(await WorkOrderApi.uploadMultiImgAttachment(type, image, woId));
+                refresh(await WorkOrderApi.uploadMultiImgAttachment(type, image, woId), 'upload');
               }catch(e){
                 print(e);
                 redSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists');
-                ok = false;
-              }finally{
-                if(ok){
-                  snackbarMessage(context, 'Image uploaded');
-                }
               }
             } else {
               return;
@@ -200,8 +206,10 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(List<Str
   );
 }
 
-deleteAttachment(BuildContext context, num woId, String img, Function(List<String>) refresh) {
+deleteAttachment(BuildContext context, num woId, String img, Function(Map, String) refresh, String type) {
   AlertDialog alert = AlertDialog(
+    titlePadding: EdgeInsets.fromLTRB(20, 20, 20, 5),
+    actionsPadding: EdgeInsets.zero,
     title: const ListTile(
       title: Text('Delete image?'),
       leading: Icon(Icons.error_outline),
@@ -224,13 +232,14 @@ deleteAttachment(BuildContext context, num woId, String img, Function(List<Strin
               bool ok = true;
               Navigator.pop(context);
               try{
-                refresh(await WorkOrderApi.deleteImgAttachment(woId, img));
+                loadingScreen(context);
+                refresh(await WorkOrderApi.deleteImgAttachment(woId, img, type), 'delete');
               }catch(e){
                 redSnackbarMessage(context, 'Failed to delete image. Please contact admin if issue persists');
                 ok = false;
               }finally{
                 if(ok){
-                  snackbarMessage(context, 'Successfully deleted');
+                  // snackbarMessage(context, 'Successfully deleted');
                 }
               }
             },

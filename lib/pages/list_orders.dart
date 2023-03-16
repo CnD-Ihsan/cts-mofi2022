@@ -40,7 +40,6 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   setFilter(String value, String type, Icon icon){
-
     return ListTile(
       leading: icon,
       title: Text(value),
@@ -52,7 +51,7 @@ class _WorkOrdersState extends State<WorkOrders> {
           filterNotifier.value[type] = 'All Status';
         }
         if(value == 'All Orders'){
-          filterNotifier.value[type] = 'All Orders';
+          filterNotifier.value[type] = null;
         }
         Navigator.pop(context);
         setState(() {});
@@ -87,7 +86,21 @@ class _WorkOrdersState extends State<WorkOrders> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${filterNotifier.value['type'] ?? 'All'} Orders'),
+        title: InkWell(
+            child: Text('${filterNotifier.value['type'] ?? 'All'} Orders'),
+          onTap: (){
+              Navigator.push(
+              context,
+              MaterialPageRoute(
+                  settings: const RouteSettings(
+                    name: "/show",
+                  ),
+                  builder: (context) => ShowOrder(
+                    orderID: 6,
+                  )),
+            );
+          },
+        ),
         actions: [
           Builder(
             builder: (context) {
@@ -99,6 +112,20 @@ class _WorkOrdersState extends State<WorkOrders> {
             }
           )
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (BuildContext context) {
+              // Returning SizedBox instead of a Container
+              return Divider();
+            },
+          ),
+        },
+        label: const Text('Filter'),
+        icon: const Icon(Icons.filter_list_sharp),
       ),
       endDrawer: Drawer(
         child: Container(
@@ -164,6 +191,13 @@ class _WorkOrdersState extends State<WorkOrders> {
               setFilter('All Orders', 'type',  const Icon(Icons.select_all)),
               const Divider(),
               ListTile(
+                title: const Text('Notifications'),
+                leading: const Icon(Icons.notifications),
+                onTap: () async {
+                  SpeedTestUtils.runSpeedTest();
+                },
+              ),
+              ListTile(
                 title: const Text('Speed Test'),
                 leading: const Icon(Icons.speed),
                 onTap: () async {
@@ -221,7 +255,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                               workOrder.status == filterNotifier.value['status'])
                           .toList();
                     }
-                    if (filterNotifier.value['type'] != 'All Orders') {
+                    if (filterNotifier.value['type'] != null) {
                       list = list
                           .where((workOrder) =>
                       workOrder.taskType == filterNotifier.value['type'])
