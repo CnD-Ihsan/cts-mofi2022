@@ -6,15 +6,15 @@ import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
 class SubmitONT extends StatefulWidget {
-  num soId = 0;
-  SubmitONT({Key? key, required this.soId}) : super(key: key);
+  num woId = 0;
+  SubmitONT({Key? key, required this.woId}) : super(key: key);
 
   @override
   State<SubmitONT> createState() => _SubmitONTState();
 }
 
 class _SubmitONTState extends State<SubmitONT> {
-  num soId = 0;
+  num woId = 0;
   String ontSn = 'N/A';
   var response;
   Stream<dynamic>? bc;
@@ -22,7 +22,7 @@ class _SubmitONTState extends State<SubmitONT> {
 
   @override
   void initState() {
-    soId = widget.soId;
+    woId = widget.woId;
     super.initState();
   }
 
@@ -75,7 +75,7 @@ class _SubmitONTState extends State<SubmitONT> {
                     return;
                   }
                   showLoaderDialog(context);
-                  response = await WorkOrderApi.submitOnt(soId, txt.text);
+                  response = await WorkOrderApi.activateOnt(woId, txt.text);
                   if (mounted) {}
                   if (response.containsKey('data')) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -113,11 +113,10 @@ class _SubmitONTState extends State<SubmitONT> {
                       ),
                     );
                   }
-
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (BuildContext context) => ShowOrder(orderID: soId),
+                      builder: (BuildContext context) => ShowOrder(orderID: woId),
                     ),
                     (route) => route.isFirst,
                     // ModalRoute.of(context, ),

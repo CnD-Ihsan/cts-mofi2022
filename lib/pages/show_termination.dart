@@ -62,7 +62,7 @@ class _ShowOrderState extends State<ShowOrder> {
   getAsync(num id) async {
     try {
       prefs = await SharedPreferences.getInstance();
-      wo = await WorkOrderApi.getWorkOrder(id);
+      wo = (await WorkOrderApi.getWorkOrder(id))!;
       if ((wo.ontSn != null && !wo.ontSn.toString().contains(' '))) {
         ontSubmitted = true;
       }
@@ -100,7 +100,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   builder: (BuildContext context) {
                     // Returning SizedBox instead of a Container
                     return SubmitONT(
-                      soId: wo.soId,
+                      woId: wo.woId,
                     );
                   },
                 ),

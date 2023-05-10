@@ -7,18 +7,28 @@ import 'package:wfm/models/work_order_model.dart';
 import 'package:http/http.dart' as http;
 
 class WorkOrderApi {
-  static Future<WorkOrder> getWorkOrder(num id) async {
-    //id = '194';
+  static var wfmHost = '80.80.2.254:8080';
+
+  static Future<WorkOrder> getWorkOrder(num id, String type) async {
     var uri =
-        Uri.http('80.80.0.86:80', '/api/serviceorder/show-work-order/$id');
+        Uri.http(wfmHost, '/api/work-orders/show');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    final response = await http.get(uri, headers: {
-      "useQueryString": "true",
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
+    Map dataSend = {
+      "id": id,
+      "returnType": type,
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "useQueryString": "true",
+        "Content-Type": "application/json",
+        "Authorization" : "Bearer $token",
+      },
+      body: jsonEncode(dataSend),
+    );
 
     Map data = jsonDecode(response.body);
 
@@ -34,7 +44,7 @@ class WorkOrderApi {
     }
 
     return WorkOrder(
-      woId: num.parse(data['work_order']),
+      woId: id,
       soId: data['so_id'],
       woName: data['crm_no'],
       status: data['status'],
@@ -43,7 +53,7 @@ class WorkOrderApi {
       startDate: data['appointment_date'],
       time: tempTime,
       date: tempDate,
-      img: await getImgAttachments(data['wo_id']),
+      img: await getImgAttachments(id),
       lat: double.parse(data['latitude']),
       lng: double.parse(data['longitude']),
       ontSn: data['ont_sn'],
@@ -55,26 +65,21 @@ class WorkOrderApi {
     );
   }
 
-  static Future<String> getWorkOrderProgress() async {
-    return 'sokeh beb';
-  }
-
   static Future<List<WorkOrder>> getWorkOrderList() async {
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/all');
+    var uri = Uri.http(wfmHost, '/api/work-orders/all');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    // String? token = prefs.getString('token');
 
     final response = await http.get(uri, headers: {
       "useQueryString": "true",
       "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
+      // "Authorization": "Bearer $token",
     });
 
     List<WorkOrder> workOrderList = [];
     var jsonData = jsonDecode(response.body);
     String? tempDate;
     String? tempTime;
-
     for (var data in jsonData) {
       if (data.containsKey('start_date') && data['start_date'] != null) {
         DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -85,69 +90,56 @@ class WorkOrderApi {
 
       WorkOrder wo = WorkOrder(
         woId: data['wo_id'],
-        soId: num.parse(data['service_order']),
-        woName: data['wo_name'],
+        soId: data['service_order'],
+        woName: data['name'],
         status: data['status'],
         requestedBy: data['requested_by'],
         address: data['cust_addr_name'],
         date: tempDate,
         time: tempTime,
-        woType: data['wo_type'],
-        taskType: data['task_type'],
-        lat: data['latitude'],
-        lng: data['longitude'],
+        group: data['group'],
+        type: data['type'],
       );
       workOrderList.add(wo);
     }
     return workOrderList;
   }
 
-  static submitOnt(num soId, String? ontSn) async {
-    var uri = Uri.http('80.80.0.86:80', '/api/serviceorder/ont-activation');
+  static completeOrder(num soId, String? ontSn) async {
+    var uri = Uri.http(wfmHost, '/api/work-orders/request-complete');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    // String? token = prefs.getString('token');
 
-    Map jsonOnt = {"so": soId, "ontsn": ontSn};
+    Map jsonOnt = {"so_id": soId, "ont_sn": ontSn};
 
     final response = await http.post(
       uri,
       headers: {
         "useQueryString": "true",
         "Content-Type": "application/json",
+        "Accept": "application/json",
         // "Authorization" : "Bearer $token",
       },
       body: jsonEncode(jsonOnt),
     );
-    print(response.body);
 
-    Map temp = json.decode(response.body);
-    return temp;
-  }
+    Map temp = {};
 
-  static requestVerification(num soId, String? ontSn) async {
-    var uri = Uri.http('80.80.0.86:80', '/api/serviceorder/request-verification');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    if(response.statusCode >= 200 && response.statusCode <= 300){
+      try {
+        temp = json.decode(response.body);
+      } on FormatException catch (e) {
+        temp = {"error" : "The provided string is not valid JSON"};
+      }
+    }else{
+      temp = {"error" : "Status code: ${response.statusCode}"};
+    }
 
-    Map jsonOnt = {"so_id": soId, "ontsn": ontSn};
-
-    final response = await http.post(
-      uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        // "Authorization" : "Bearer $token",
-      },
-      body: jsonEncode(jsonOnt),
-    );
-    print(response.body);
-
-    Map temp = json.decode(response.body);
     return temp;
   }
 
   static returnOrder(num woId, num soId, String? returnType, String? remarks, List<XFile?> listImage) async {
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/return/$woId');
+    var uri = Uri.http(wfmHost, '/api/work-orders/request-return/$woId');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -168,10 +160,14 @@ class WorkOrderApi {
     );
 
     if(response.statusCode >= 200 && response.statusCode <= 300){
-      final uploadResponse = await uploadMultiImgAttachment('return', listImage, woId);
-      return true;
+      try{
+        return await uploadMultiImgAttachment('return', listImage, woId);
+      }catch(e){
+        return "Error: Failed to upload attachment. Please retry later.";
+      }
+      return "Success: Return Order Requested.";
     }else{
-      return false;
+      return "Error: Failed to establish connection to server";
     }
   }
 
@@ -182,7 +178,7 @@ class WorkOrderApi {
     final String directoryPath = file.path.split('/').sublist(0, file.path.split('/').length - 1).join('/');
     final File renamedFile = await file.rename('$directoryPath/$newFileName');
 
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/upload-image/$id');
+    var uri = Uri.http('80.80.2.254:8080', '/api/work-orders/upload-image/$id');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -206,7 +202,7 @@ class WorkOrderApi {
 
   static deleteImgAttachment(num id, String path, String type) async {
     var uri =
-        Uri.http('80.80.2.254:8080', '/api/workorder/remove_image/$id/$path');
+        Uri.http(wfmHost, '/api/work-orders/remove_image/$id/$path');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -214,8 +210,6 @@ class WorkOrderApi {
       "Authorization": "Bearer $token",
     },
     body: {'type' : type});
-    // print(token);
-    print(await response.body);
 
     if (response.statusCode >= 200 && response.statusCode <= 300) {
       return getImgAttachments(id);
@@ -225,7 +219,7 @@ class WorkOrderApi {
   }
 
   static uploadMultiImgAttachment(String type, List<XFile?> imgList, num id) async {
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/upload-image/$id');
+    var uri = Uri.http(wfmHost, '/api/work-orders/upload-image/$id');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -235,7 +229,7 @@ class WorkOrderApi {
     });
     request.fields.addAll({"type": type});
 
-    List<http.MultipartFile> files = [];
+    // List<http.MultipartFile> files = [];
     for (var img in imgList) {
 
       File file = File(img!.path);
@@ -257,50 +251,46 @@ class WorkOrderApi {
   }
 
   static getImgAttachments(num id) async {
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/get-image',
-        {'data_id': id.toString()});
+    var uri = Uri.http(wfmHost, '/api/work-orders/get-image',
+        {'wo_id': id.toString()});
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    final response = await http.get(
+    final response = await http.post(
       uri,
       headers: {
         "Authorization": "Bearer $token",
       },
     );
 
+    print(response.body.toString());
     Map img = json.decode(response.body);
-
     return img;
-
-    // if( img != null){
-    //   List<String> imgList = List.from(img['ontsn']!.toList());
-    //   return imgList;
-    // }else{
-    //   return null;
-    // }
   }
 
-  static activateOnt(String? ontSn) async {
-    var uri = Uri.http('80.80.2.254:8080', '/api/workorder/submitOnt');
+  static activateOnt(num woId, String? ontSn) async {
+    var uri = Uri.http(wfmHost, '/api/work-orders/submitOnt');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    Map jsonOnt = {"ontSn": ontSn};
+    Map jsonOnt = {
+      "wo" : woId,
+      "ontsn": ontSn
+    };
 
     final response = await http.post(
       uri,
       headers: {
-        "useQueryString": "true",
+        // "useQueryString": "true",
+        "Accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
+        // "Authorization": "Bearer $token",
       },
       body: jsonEncode(jsonOnt),
     );
 
     Map temp = json.decode(response.body);
-
     return temp;
   }
 }

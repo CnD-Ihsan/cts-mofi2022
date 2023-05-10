@@ -6,6 +6,7 @@ import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
+import 'package:wfm/pages/widgets/message_widgets.dart';
 import 'package:wfm/pages/widgets/work_order_tiles.dart';
 
 class WorkOrders extends StatefulWidget {
@@ -74,8 +75,8 @@ class _WorkOrdersState extends State<WorkOrders> {
   // }
 
   getPrefs() async {
-    user = widget.user;
-    email = widget.email;
+    // user = widget.user;
+    // email = widget.email;
     prefs = await SharedPreferences.getInstance();
     user = prefs.getString('user') ?? 'Unauthorized';
     email = prefs.getString('email') ?? 'Unauthorized';
@@ -187,7 +188,7 @@ class _WorkOrdersState extends State<WorkOrders> {
               ),
               setFilter('New Installation', 'type',  const Icon(Icons.build)),
               setFilter('Termination', 'type',  const Icon(Icons.dnd_forwardslash)),
-              setFilter('Troubleshoot', 'type',  const Icon(Icons.settings)),
+              setFilter('Troubleshoot Ticket', 'type',  const Icon(Icons.settings)),
               setFilter('All Orders', 'type',  const Icon(Icons.select_all)),
               const Divider(),
               ListTile(
@@ -208,12 +209,16 @@ class _WorkOrdersState extends State<WorkOrders> {
                 title: const Text('Log Out'),
                 leading: const Icon(Icons.exit_to_app),
                 onTap: () async {
+                  loadingScreen(context);
+                  await Future.delayed(Duration(seconds: 1), () {
+                  });
                   final SharedPreferences prefs =
                       await SharedPreferences.getInstance();
                   prefs.remove('user');
                   prefs.remove('email');
                   prefs.remove('token');
                   if (mounted) {
+                    colorSnackbarMessage(context, 'Logged out', Colors.green);
                     Navigator.pushReplacement<void, void>(
                       context,
                       MaterialPageRoute<void>(
@@ -258,7 +263,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                     if (filterNotifier.value['type'] != null) {
                       list = list
                           .where((workOrder) =>
-                      workOrder.taskType == filterNotifier.value['type'])
+                      workOrder.type == filterNotifier.value['type'])
                           .toList();
                     }
 
@@ -288,7 +293,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                     name: "/show",
                                   ),
                                   builder: (context) => ShowOrder(
-                                        orderID: wo.soId,
+                                        orderID: wo.woId,
                                       )),
                             );
                           },
@@ -299,7 +304,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                             ),
                             title: wo.woName,
                             subtitle: wo.address,
-                            author: wo.woType ?? 'Undefined',
+                            author: wo.group ?? 'Undefined',
                             publishDate: wo.date ?? 'Unassigned',
                             readDuration: wo.time ?? 'Unassigned',
                           ),

@@ -8,6 +8,8 @@ import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
+const String host = 'http://80.80.2.254:8080/api/work-orders/order-image/';
+
 class Attachments extends StatefulWidget {
   final num woId;
   final List<String> urlImages;
@@ -19,7 +21,7 @@ class Attachments extends StatefulWidget {
 
 class _AttachmentsState extends State<Attachments> {
   late num woId;
-  String host = 'http://80.80.2.254:8080/api/workorder/order-image/';
+  // String host = 'http://80.80.2.254:8080/api/work-orders/order-image/';
   List<String> urlImages = [''];
 
   @override
@@ -176,8 +178,6 @@ Widget noAttachmentWidget(){
   );
 }
 
-String host = 'http://80.80.2.254:8080/api/workorder/order-image/';
-
 Widget newInstallationAttachments(BuildContext context, num woId, Map listImage, Function(Map, String) refresh, GlobalKey scrollKey) {
   return Column(
     children: [
@@ -290,16 +290,16 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                               width: 100,
                               child: CachedNetworkImage(
                                 fit: BoxFit.cover,
-                                imageUrl: host + (listImage['sign'][index]),
+                                imageUrl: host + (listImage['sign'][index]['name']),
                                 placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
                             ),
                             onLongPress: (){
-                              deleteAttachment(context, woId, listImage['sign'][index], refresh, 'sign');
+                              deleteAttachment(context, woId, listImage['sign'][index]['name'], refresh, 'sign');
                             },
                             onTap: () {
-                              openGallery(context, List<String>.from(listImage['sign']), index);
+                              openGallery(context, List<dynamic>.from(listImage['sign']), index);
                             });
                       }),
                 ],
@@ -347,16 +347,16 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                               width: 100,
                               child: CachedNetworkImage(
                                 fit: BoxFit.cover,
-                                imageUrl: host + (listImage['speedtest'][index]),
+                                imageUrl: host + (listImage['speedtest'][index]['name']),
                                 placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
                             ),
                             onLongPress: (){
-                              deleteAttachment(context, woId, listImage['speedtest'][index], refresh, 'speedtest');
+                              deleteAttachment(context, woId, listImage['speedtest'][index]['name'], refresh, 'speedtest');
                             },
                             onTap: () {
-                              openGallery(context, List<String>.from(listImage['speedtest']), index);
+                              openGallery(context, List<dynamic>.from(listImage['speedtest']), index);
                             });
                       }),
                 ],
@@ -413,7 +413,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                               deleteAttachment(context, woId, listImage['rgw'][index], refresh, 'rgw');
                             },
                             onTap: () {
-                              openGallery(context, List<String>.from(listImage['rgw']), index);
+                              openGallery(context, List<dynamic>.from(listImage['rgw']), index);
                             });
                       }),
                 ],
@@ -470,7 +470,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                               deleteAttachment(context, woId, listImage['web'][index], refresh, 'web');
                             },
                             onTap: () {
-                              openGallery(context, List<String>.from(listImage['web']), index);
+                              openGallery(context, List<dynamic>.from(listImage['web']), index);
                             });
                       }),
                 ],
@@ -489,7 +489,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
   );
 }
 
-void openGallery(BuildContext context, List<String> urlImages, int index){
+void openGallery(BuildContext context, List<dynamic> urlImages, int index){
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -502,7 +502,7 @@ void openGallery(BuildContext context, List<String> urlImages, int index){
 }
 
 class GalleryWidget extends StatefulWidget {
-  final List<String> urlImages;
+  final List<dynamic> urlImages;
   final int index;
   final PageController pageController;
 
@@ -513,7 +513,7 @@ class GalleryWidget extends StatefulWidget {
 }
 
 class _GalleryWidgetState extends State<GalleryWidget> {
-  String host = 'http://80.80.2.254:8080/api/workorder/order-image/';
+  String host = 'http://80.80.2.254:8080/api/work-orders/order-image/';
   late int index = widget.index;
 
   @override
@@ -525,7 +525,7 @@ class _GalleryWidgetState extends State<GalleryWidget> {
             },
             itemCount: widget.urlImages.length,
             builder: (context, index) {
-              final urlImage = host + widget.urlImages[index];
+              final urlImage = '$host${widget.urlImages[index]['name']}';
               return PhotoViewGalleryPageOptions(
                 imageProvider: NetworkImage(urlImage),
               );

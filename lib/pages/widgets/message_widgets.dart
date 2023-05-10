@@ -24,7 +24,7 @@ snackbarMessage(BuildContext context, String? message) {
   );
 }
 
-redSnackbarMessage(BuildContext context, String? message) {
+colorSnackbarMessage(BuildContext context, String? message, Color? color){
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
@@ -37,8 +37,8 @@ redSnackbarMessage(BuildContext context, String? message) {
           ),
         ],
       ),
-      backgroundColor: Colors.red,
-      duration: const Duration(milliseconds: 2000),
+      backgroundColor: color ?? Colors.green,
+      duration: const Duration(milliseconds: 2500),
     ),
   );
 }
@@ -159,7 +159,7 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
                 refresh(await WorkOrderApi.uploadImgAttachment(type, image, woId), 'upload');
               }catch(e){
                 print(e);
-                redSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists');
+                colorSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists', Colors.red);
                 ok = false;
               }finally{
                 if(ok){
@@ -167,7 +167,7 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
                 }
               }
             } else {
-              redSnackbarMessage(context, 'No image was selected.');
+              colorSnackbarMessage(context, 'No image was selected.', Colors.red);
               return;
             }
           },
@@ -187,7 +187,7 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
                 refresh(await WorkOrderApi.uploadMultiImgAttachment(type, image, woId), 'upload');
               }catch(e){
                 print(e);
-                redSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists');
+                colorSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists', Colors.red);
               }
             } else {
               return;
@@ -235,7 +235,8 @@ deleteAttachment(BuildContext context, num woId, String img, Function(Map, Strin
                 loadingScreen(context);
                 refresh(await WorkOrderApi.deleteImgAttachment(woId, img, type), 'delete');
               }catch(e){
-                redSnackbarMessage(context, 'Failed to delete image. Please contact admin if issue persists');
+                Navigator.pop(context);
+                colorSnackbarMessage(context, 'Failed to delete image. Please contact admin if issue persists', Colors.red);
                 ok = false;
               }finally{
                 if(ok){

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
+import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/pages/return_order.dart';
 import 'package:wfm/pages/submit_ont.dart';
 import 'package:wfm/models/work_order_model.dart';
@@ -23,9 +24,9 @@ class ShowOrder extends StatefulWidget {
 
 class _ShowOrderState extends State<ShowOrder> {
   num orderID = 0;
-  bool statusChange = false;
   Stream<dynamic>? bc;
   Map listImage = {};
+  Map requestVerification = {};
   var txt = TextEditingController();
   final GlobalKey _scrollAttachmentKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
@@ -42,7 +43,7 @@ class _ShowOrderState extends State<ShowOrder> {
       await getAsync(widget.orderID, false);
       if(mounted){}
       if(action == 'delete'){
-        snackbarMessage(context, 'Successfully deleted');
+        snackbarMessage(context, 'Image attachment deleted.');
         Navigator.pop(context);
       }
       else{
@@ -64,7 +65,7 @@ class _ShowOrderState extends State<ShowOrder> {
             builder: (BuildContext context) {
               // Returning SizedBox instead of a Container
               return SubmitONT(
-                soId: wo.soId,
+                woId: wo.woId,
               );
             },
           ),
@@ -93,7 +94,13 @@ class _ShowOrderState extends State<ShowOrder> {
       return FloatingActionButton.extended(
         onPressed: () async => {
           // alertMessage(context, 'Submit order completion?'),
-          await WorkOrderApi.requestVerification(wo.soId, wo.ontSn),
+          requestVerification = await WorkOrderApi.completeOrder(wo.soId, wo.ontSn),
+          if(!requestVerification.containsKey('error')){
+            snackbarMessage(context, 'Verification request submitted!'),
+            setState(() {})
+          }else{
+            colorSnackbarMessage(context, 'Request error! ${requestVerification['error']}', Colors.red)
+          }
         },
         label: const Text('Complete Order'),
         icon: const Icon(Icons.check_circle),
@@ -130,6 +137,17 @@ class _ShowOrderState extends State<ShowOrder> {
       if(needPop){
         Navigator.pop(context);
       }
+      if(wo.woId == 0){
+        colorSnackbarMessage(context, 'Failed to get work order details! Contact admin if issue persists.', Colors.red);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => WorkOrders(
+                user: prefs.getString('user') ?? 'Unauthorized',
+                email: prefs.getString('email') ?? 'Unauthorized',
+              )),
+        );
+      }
     }
   }
 
@@ -139,11 +157,11 @@ class _ShowOrderState extends State<ShowOrder> {
     return Scaffold(
       appBar: AppBar(
         title: Text(wo.woName),
-        actions: wo.status != 'Pending' ? null : [
+        actions: wo.status != 'Pending' || wo.progress == 'close_requested' ? null : [
           Builder(
               builder: (context) {
                 return PopupMenuButton(
-                  icon: const Icon(Icons.assignment_return_outlined),
+                  icon: const Icon(Icons.menu),
                   position: PopupMenuPosition.under,
                   // color: Colors.blue,
                   tooltip: "Order Actions",
@@ -226,7 +244,7 @@ class _ShowOrderState extends State<ShowOrder> {
                       style: TextStyle(fontSize: 12, color: wo.progress == 'activation' || wo.progress == 'attachment' ? Colors.black : Colors.blue,),
                       textAlign: TextAlign.start,
                     ),
-                    wo.progress == 'completion' ?
+                    wo.progress == 'completion' || wo.progress == 'close_requested' ?
                       const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
                       wo.progress == 'activation' || wo.progress == 'attachment' ?
                       const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
@@ -250,7 +268,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.question_mark),
                     title: Text(
-                      wo.status,
+                      wo.status + (wo.progress == 'close_requested' ? ' (Close Requested)' : ''),
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -342,7 +360,7 @@ class _ShowOrderState extends State<ShowOrder> {
                         children: [
                           InkWell(
                             onTap: () async {
-                              final Uri url = Uri.parse('https://wa.me/60128112302');
+                              final Uri url = Uri.parse('https://wa.me/${wo.custContact}');
                               if(await canLaunchUrl(url)){
                               launchUrl(url, mode: LaunchMode.externalApplication);
                               }
@@ -388,9 +406,6 @@ class _ShowOrderState extends State<ShowOrder> {
                       textAlign: TextAlign.start,
                     ),
                   ),
-                  // SubmitONT(
-                  //   ontID: wo.ontActId,
-                  // ),
                   SizedBox(
                     key: _scrollAttachmentKey,
                     height: 20,

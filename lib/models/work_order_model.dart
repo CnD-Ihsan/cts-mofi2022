@@ -10,8 +10,8 @@ class WorkOrder {
   final String requestedBy;
   final String address;
   final String? progress;
-  final String? woType;
-  final String? taskType;
+  final String? group;
+  final String? type;
   final String? createdBy;
   final String? startDate;
   final String? endDate;
@@ -39,8 +39,8 @@ class WorkOrder {
     required this.requestedBy,
     required this.address,
     this.progress = '',
-    this.woType = '',
-    this.taskType = '',
+    this.group = '',
+    this.type = '',
     this.createdBy = '',
     this.startDate = '',
     this.endDate = '',
@@ -67,8 +67,8 @@ class WorkOrder {
       woName: json['ftth']['wo_name'] as String,
       status: json['ftth']['status'] as String,
       requestedBy: json['ftth']['requested_by'] as String,
-      woType: json['ftth']['wo_type'] as String?,
-      taskType: json['ftth']['task_type'] as String?,
+      group: json['ftth']['wo_type'] as String?,
+      type: json['ftth']['task_type'] as String?,
       createdBy: json['ftth']['wo_created_by'] as String?,
       startDate: json['ftth']['start_date'] as String?,
       endDate: json['ftth']['end_date'] as String?,
