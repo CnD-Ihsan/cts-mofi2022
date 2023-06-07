@@ -37,7 +37,7 @@ class _SubmitONTState extends State<SubmitONT> {
     return Padding(
       padding: MediaQuery.of(context).viewInsets,
       child: Container(
-        height: 160,
+        height: 180,
         child: Column(
           children: [
             const SizedBox(
@@ -61,69 +61,68 @@ class _SubmitONTState extends State<SubmitONT> {
                 ),
                 controller: txt,
               ),
+              subtitle: const Text("* When using the camera to scan, cover other barcodes to ensure accuracy."),
             ),
             const SizedBox(
               height: 10,
             ),
-            Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (txt.text == '' ||
-                      txt.text == '-1' ||
-                      txt.text.contains(' ')) {
-                    alertMessage(context, 'Invalid input');
-                    return;
-                  }
-                  showLoaderDialog(context);
-                  response = await WorkOrderApi.activateOnt(woId, txt.text);
-                  if (mounted) {}
-                  if (response.containsKey('data')) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        // behavior: SnackBarBehavior.floating,
-                        content: Row(
-                          children: const [
-                            Text('ONT Activated'),
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                        backgroundColor: Colors.green,
-                        duration: const Duration(milliseconds: 3000),
+            ElevatedButton(
+              onPressed: () async {
+                if (txt.text == '' ||
+                    txt.text == '-1' ||
+                    txt.text.contains(' ')) {
+                  alertMessage(context, 'Invalid input');
+                  return;
+                }
+                showLoaderDialog(context);
+                response = await WorkOrderApi.activateOnt(woId, txt.text);
+                if (mounted) {}
+                if (response.containsKey('data')) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      // behavior: SnackBarBehavior.floating,
+                      content: Row(
+                        children: const [
+                          Text('ONT Activated'),
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                          ),
+                        ],
                       ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            Expanded(
-                                child:
-                                    Text('Error: ${response['errorMessage']}')),
-                            const Icon(
-                              Icons.error_outline,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(milliseconds: 3000),
-                      ),
-                    );
-                  }
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => ShowOrder(orderID: woId),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(milliseconds: 3000),
                     ),
-                    (route) => route.isFirst,
-                    // ModalRoute.of(context, ),
                   );
-                },
-                child: const Text('Submit'),
-              ),
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Expanded(
+                              child:
+                                  Text('Error: ${response['errorMessage']}')),
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(milliseconds: 3000),
+                    ),
+                  );
+                }
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (BuildContext context) => ShowServiceOrder(orderID: woId),
+                  ),
+                  (route) => route.isFirst,
+                  // ModalRoute.of(context, ),
+                );
+              },
+              child: const Text('Submit'),
             ),
           ],
         ),

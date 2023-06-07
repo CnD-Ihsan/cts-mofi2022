@@ -1,15 +1,14 @@
-class WorkOrder {
+class TroubleshootOrder {
   //Work order details
-  final num woId;
-  final num ftthId;
-  final String woName;
+  final num ttId;
+  final String ttNo;
   final String status;
-  final String requestedBy;
+  final String isp;
   final String address;
-  final String? progress;
-  final String? group;
+  final String description;
+  String? progress;
   final String? type;
-  final String? createdBy;
+  final String? deviceQuantity;
   final String? startDate;
   final String? endDate;
   final double? lat;
@@ -20,23 +19,29 @@ class WorkOrder {
   String? date;
   String? time;
 
+  // final num soId;
+  // final String soType;
   final String custContact;
   final String custName;
   final String carrier;
   final String speed;
   final String? ontSn;
+  final String? rootCause;
+  final String? subCause;
+  final String? faultLocation;
+  final String? actionTaken;
 
-  WorkOrder({
-    required this.woId,
-    required this.ftthId,
-    required this.woName,
+
+  TroubleshootOrder({
+    required this.ttId,
+    required this.ttNo,
     required this.status,
-    required this.requestedBy,
+    required this.isp,
     required this.address,
+    required this.description,
     this.progress = '',
-    this.group = '',
     this.type = '',
-    this.createdBy = '',
+    this.deviceQuantity = '',
     this.startDate = '',
     this.endDate = '',
     this.date = '',
@@ -45,26 +50,27 @@ class WorkOrder {
     this.lat = 0.0,
     this.lng = 0.0,
 
-    // this.soId,
-    // this.soType,
     this.custContact = '',
     this.custName = '',
     this.carrier = '',
     this.speed = '',
     this.ontSn,
+    this.rootCause,
+    this.subCause,
+    this.actionTaken,
+    this.faultLocation
   });
 
-  factory WorkOrder.fromJson(Map<WorkOrder, dynamic> json){
+  factory TroubleshootOrder.fromJson(Map<TroubleshootOrder, dynamic> json){
     //not updated as it is unused, yet.
-    return WorkOrder(
-      woId: json['ftth']['wo_id'] as num,
-      ftthId: json['ftth']['service_order'] as num,
-      woName: json['ftth']['wo_name'] as String,
+    return TroubleshootOrder(
+      ttId: json['ftth']['wo_id'] as num,
+      ttNo: json['ftth']['service_order'] as String,
       status: json['ftth']['status'] as String,
-      requestedBy: json['ftth']['requested_by'] as String,
-      group: json['ftth']['wo_type'] as String?,
+      isp: json['ftth']['requested_by'] as String,
+      description: json['ftth']['description'] as String,
       type: json['ftth']['task_type'] as String?,
-      createdBy: json['ftth']['wo_created_by'] as String?,
+      deviceQuantity: json['ftth']['deviceQuantity'] as String?,
       startDate: json['ftth']['start_date'] as String?,
       endDate: json['ftth']['end_date'] as String?,
       address: json['ftth']['cust_addr_name'] as String,
@@ -77,6 +83,10 @@ class WorkOrder {
       speed: json['ftth']['package_speed'] as String,
       carrier: json['ftth']['carrier'] as String,
       ontSn: json['ftth']['ont_sn'] as String?,
+      rootCause: json['ftth']['root_cause'] as String?,
+      subCause: json['ftth']['sub_cause'] as String?,
+      actionTaken: json['ftth']['action_taken'] as String?,
+      faultLocation: json['ftth']['fault_location'] as String?,
     );
   }
 }

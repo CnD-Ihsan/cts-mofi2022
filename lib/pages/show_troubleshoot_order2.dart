@@ -3,20 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/utils.dart';
+import 'package:wfm/models/tt_model.dart';
 import 'package:wfm/pages/submit_ont.dart';
-import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
-class ShowOrder extends StatefulWidget {
+class ShowTroubleshootOrder extends StatefulWidget {
   final num orderID;
-  const ShowOrder({Key? key, required this.orderID}) : super(key: key);
+  const ShowTroubleshootOrder({Key? key, required this.orderID}) : super(key: key);
 
   @override
-  State<ShowOrder> createState() => _ShowOrderState();
+  State<ShowTroubleshootOrder> createState() => _ShowTroubleshootOrderState();
 }
 
-class _ShowOrderState extends State<ShowOrder> {
+class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   num orderID = 0;
   bool ontSubmitted = false;
   Stream<dynamic>? bc;
@@ -45,15 +45,14 @@ class _ShowOrderState extends State<ShowOrder> {
     super.initState();
   }
 
-  WorkOrder wo = WorkOrder(
-    woId: 0,
-    soId: 0,
-    woName: 'Loading...',
+  TroubleshootOrder tt = TroubleshootOrder(
+    ttId: 0,
+    ttNo: 'Loading...',
+    isp: 'Loading...',
     status: 'Loading..',
-    requestedBy: 'Loading...',
+    description: 'Loading...',
     address: 'Loading...',
     custContact: 'Loading...',
-    carrier: 'Loading...',
     speed: 'Loading...',
   );
 
@@ -62,8 +61,8 @@ class _ShowOrderState extends State<ShowOrder> {
   getAsync(num id) async {
     try {
       prefs = await SharedPreferences.getInstance();
-      wo = (await WorkOrderApi.getWorkOrder(id))!;
-      if ((wo.ontSn != null && !wo.ontSn.toString().contains(' '))) {
+      tt = (await WorkOrderApi.getTroubleshootOrder(id));
+      if ((tt.ontSn != null && !tt.ontSn.toString().contains(' '))) {
         ontSubmitted = true;
       }
     } catch (e) {
@@ -79,7 +78,7 @@ class _ShowOrderState extends State<ShowOrder> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(wo.woName),
+        title: Text(tt.ttNo),
         // actions: [
         //   IconButton(
         //     icon: Icon(Icons.maps_home_work),
@@ -100,7 +99,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   builder: (BuildContext context) {
                     // Returning SizedBox instead of a Container
                     return SubmitONT(
-                      woId: wo.woId,
+                      woId: widget.orderID,
                     );
                   },
                 ),
@@ -130,7 +129,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.question_mark),
                     title: Text(
-                      wo.status,
+                      tt.status,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -138,7 +137,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.calendar_month),
                     title: Text(
-                      wo.date ?? 'N/A',
+                      tt.date ?? 'N/A',
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -146,7 +145,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.access_time),
                     title: Text(
-                      wo.time ?? 'N/A',
+                      tt.time ?? 'N/A',
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -159,18 +158,18 @@ class _ShowOrderState extends State<ShowOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      wo.requestedBy,
+                      tt.description,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
                   ),
                   InkWell(
                     onTap: () async {
-                      wo.lat != 0
-                          ? MapUtils.openMap(wo.lat, wo.lng)
-                          : (wo.address == ''
+                      tt.lat != 0
+                          ? MapUtils.openMap(tt.lat, tt.lng)
+                          : (tt.address == ''
                               ? alertMessage(context, 'Empty address')
-                              : mapPromptDialog(context, wo.address));
+                              : mapPromptDialog(context, tt.address));
                     },
                     child: ListTile(
                       leading: const Icon(Icons.home),
@@ -180,7 +179,7 @@ class _ShowOrderState extends State<ShowOrder> {
                       //   textAlign: TextAlign.start,
                       // ),
                       title: Text(
-                        wo.address,
+                        tt.address,
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
@@ -212,7 +211,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      wo.carrier,
+                      tt.isp,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -225,7 +224,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      wo.speed,
+                      tt.speed,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -238,7 +237,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     ),
                     title: Text(
                       ontSubmitted
-                          ? wo.ontSn.toString()
+                          ? tt.ontSn.toString()
                           : 'N/A (Action Needed)',
                       style: textStyle(),
                       textAlign: TextAlign.start,
@@ -273,7 +272,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      wo.carrier,
+                      tt.isp,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -286,7 +285,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      wo.speed,
+                      tt.speed,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -299,7 +298,7 @@ class _ShowOrderState extends State<ShowOrder> {
                     ),
                     title: Text(
                       ontSubmitted
-                          ? wo.ontSn.toString()
+                          ? tt.ontSn.toString()
                           : 'N/A (Action Needed)',
                       style: textStyle(),
                       textAlign: TextAlign.start,

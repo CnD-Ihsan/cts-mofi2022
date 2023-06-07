@@ -6,6 +6,7 @@ import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
+import 'package:wfm/pages/show_troubleshoot_order.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 import 'package:wfm/pages/widgets/work_order_tiles.dart';
 
@@ -49,7 +50,7 @@ class _WorkOrdersState extends State<WorkOrders> {
       onTap: () async {
         filterNotifier.value[type] = value;
         if(value == 'All Status'){
-          filterNotifier.value[type] = 'All Status';
+          filterNotifier.value[type] = null;
         }
         if(value == 'All Orders'){
           filterNotifier.value[type] = null;
@@ -88,7 +89,7 @@ class _WorkOrdersState extends State<WorkOrders> {
     return Scaffold(
       appBar: AppBar(
         title: InkWell(
-            child: Text('${filterNotifier.value['type'] ?? 'All'} Orders'),
+            child: Text('${filterNotifier.value['type'] ?? filterNotifier.value['status'] ?? 'All'} Orders'),
           onTap: (){
               Navigator.push(
               context,
@@ -96,7 +97,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                   settings: const RouteSettings(
                     name: "/show",
                   ),
-                  builder: (context) => ShowOrder(
+                  builder: (context) => ShowServiceOrder(
                     orderID: 6,
                   )),
             );
@@ -254,7 +255,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                   if (snapshot.hasData) {
                     List<WorkOrder> list = snapshot.data!;
 
-                    if (filterNotifier.value['status'] != 'All Status') {
+                    if (filterNotifier.value['status'] != null) {
                       list = list
                           .where((workOrder) =>
                               workOrder.status == filterNotifier.value['status'])
@@ -284,31 +285,59 @@ class _WorkOrdersState extends State<WorkOrders> {
                         }
                         logo = logoDict[logo];
 
-                        return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  settings: const RouteSettings(
-                                    name: "/show",
-                                  ),
-                                  builder: (context) => ShowOrder(
-                                        orderID: wo.woId,
-                                      )),
-                            );
-                          },
-                          child: CustomListItemTwo(
-                            thumbnail: Image.asset(
-                              'assets/img/logo/$logo.png',
-                              fit: BoxFit.fitWidth,
+                        if(wo.type != 'Troubleshoot Ticket'){
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    settings: const RouteSettings(
+                                      name: "/showServiceOrder",
+                                    ),
+                                    builder: (context) => ShowServiceOrder(
+                                      orderID: wo.woId,
+                                    )),
+                              );
+                            },
+                            child: CustomListItemTwo(
+                              thumbnail: Image.asset(
+                                'assets/img/logo/$logo.png',
+                                fit: BoxFit.fitWidth,
+                              ),
+                              title: wo.woName,
+                              subtitle: wo.address,
+                              group: wo.group ?? 'Undefined',
+                              date: wo.date ?? 'Unassigned',
+                              time: wo.time ?? 'Unassigned',
                             ),
-                            title: wo.woName,
-                            subtitle: wo.address,
-                            author: wo.group ?? 'Undefined',
-                            publishDate: wo.date ?? 'Unassigned',
-                            readDuration: wo.time ?? 'Unassigned',
-                          ),
-                        );
+                          );
+                        }else{
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    settings: const RouteSettings(
+                                      name: "/show",
+                                    ),
+                                    builder: (context) => ShowTroubleshootOrder(
+                                      orderID: wo.woId,
+                                    )),
+                              );
+                            },
+                            child: CustomListItemTwo(
+                              thumbnail: Image.asset(
+                                'assets/img/logo/$logo.png',
+                                fit: BoxFit.fitWidth,
+                              ),
+                              title: wo.woName,
+                              subtitle: wo.address,
+                              group: wo.group ?? 'Undefined',
+                              date: wo.date ?? 'Unassigned',
+                              time: wo.time ?? 'Unassigned',
+                            ),
+                          );
+                        }
                       },
                     );
                   } else if(snapshot.hasError){

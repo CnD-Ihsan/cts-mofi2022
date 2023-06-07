@@ -1,13 +1,11 @@
-class WorkOrder {
+class ServiceOrder {
   //Work order details
-  final num woId;
-  final num ftthId;
-  final String woName;
+  final num soId;
+  final String soName;
   final String status;
   final String requestedBy;
   final String address;
   final String? progress;
-  final String? group;
   final String? type;
   final String? createdBy;
   final String? startDate;
@@ -20,21 +18,21 @@ class WorkOrder {
   String? date;
   String? time;
 
+  // final num soId;
+  // final String soType;
   final String custContact;
   final String custName;
   final String carrier;
   final String speed;
   final String? ontSn;
 
-  WorkOrder({
-    required this.woId,
-    required this.ftthId,
-    required this.woName,
+  ServiceOrder({
+    required this.soId,
+    required this.soName,
     required this.status,
     required this.requestedBy,
     required this.address,
     this.progress = '',
-    this.group = '',
     this.type = '',
     this.createdBy = '',
     this.startDate = '',
@@ -54,15 +52,13 @@ class WorkOrder {
     this.ontSn,
   });
 
-  factory WorkOrder.fromJson(Map<WorkOrder, dynamic> json){
+  factory ServiceOrder.fromJson(Map<ServiceOrder, dynamic> json){
     //not updated as it is unused, yet.
-    return WorkOrder(
-      woId: json['ftth']['wo_id'] as num,
-      ftthId: json['ftth']['service_order'] as num,
-      woName: json['ftth']['wo_name'] as String,
+    return ServiceOrder(
+      soId: json['ftth']['wo_id'] as num,
+      soName: json['ftth']['service_order'] as String,
       status: json['ftth']['status'] as String,
       requestedBy: json['ftth']['requested_by'] as String,
-      group: json['ftth']['wo_type'] as String?,
       type: json['ftth']['task_type'] as String?,
       createdBy: json['ftth']['wo_created_by'] as String?,
       startDate: json['ftth']['start_date'] as String?,

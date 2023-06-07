@@ -1,28 +1,27 @@
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
+import 'package:wfm/models/so_model.dart';
 import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/pages/return_order.dart';
 import 'package:wfm/pages/submit_ont.dart';
-import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/widgets/attachment_widget.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class ShowOrder extends StatefulWidget {
+class ShowServiceOrder extends StatefulWidget {
   final num orderID;
-  const ShowOrder({Key? key, required this.orderID}) : super(key: key);
+  const ShowServiceOrder({Key? key, required this.orderID}) : super(key: key);
 
   @override
-  State<ShowOrder> createState() => _ShowOrderState();
+  State<ShowServiceOrder> createState() => _ShowServiceOrderState();
 }
 
-class _ShowOrderState extends State<ShowOrder> {
+class _ShowServiceOrderState extends State<ShowServiceOrder> {
   num orderID = 0;
   Stream<dynamic>? bc;
   Map listImage = {};
@@ -39,7 +38,6 @@ class _ShowOrderState extends State<ShowOrder> {
   }
 
   void refresh(Map img, String action) async {
-      print(img);
       await getAsync(widget.orderID, false);
       if(mounted){}
       if(action == 'delete'){
@@ -65,7 +63,7 @@ class _ShowOrderState extends State<ShowOrder> {
             builder: (BuildContext context) {
               // Returning SizedBox instead of a Container
               return SubmitONT(
-                woId: wo.woId,
+                woId: widget.orderID,
               );
             },
           ),
@@ -94,7 +92,7 @@ class _ShowOrderState extends State<ShowOrder> {
       return FloatingActionButton.extended(
         onPressed: () async => {
           // alertMessage(context, 'Submit order completion?'),
-          requestVerification = await WorkOrderApi.completeOrder(wo.soId, wo.ontSn),
+          requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn),
           if(!requestVerification.containsKey('error')){
             snackbarMessage(context, 'Verification request submitted!'),
             setState(() {})
@@ -110,10 +108,9 @@ class _ShowOrderState extends State<ShowOrder> {
     }
   }
 
-  WorkOrder wo = WorkOrder(
-    woId: 0,
+  ServiceOrder so = ServiceOrder(
     soId: 0,
-    woName: 'Loading...',
+    soName: 'Loading...',
     status: 'Loading..',
     requestedBy: 'Loading...',
     address: 'Loading...',
@@ -127,8 +124,8 @@ class _ShowOrderState extends State<ShowOrder> {
   getAsync(num id, bool needPop) async {
     try {
       prefs = await SharedPreferences.getInstance();
-      wo = await WorkOrderApi.getWorkOrder(id);
-      listImage = wo.img;
+      so = await WorkOrderApi.getServiceOrder(id);
+      listImage = so.img;
     } catch (e) {
       print(e);
     }
@@ -137,7 +134,7 @@ class _ShowOrderState extends State<ShowOrder> {
       if(needPop){
         Navigator.pop(context);
       }
-      if(wo.woId == 0){
+      if(so.soId == 0){
         colorSnackbarMessage(context, 'Failed to get work order details! Contact admin if issue persists.', Colors.red);
         Navigator.pushReplacement(
           context,
@@ -156,8 +153,8 @@ class _ShowOrderState extends State<ShowOrder> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(wo.woName),
-        actions: wo.status != 'Pending' || wo.progress == 'close_requested' ? null : [
+        title: Text("New Installation Order"),
+        actions: so.status != 'Pending' || so.progress == 'close_requested' ? null : [
           Builder(
               builder: (context) {
                 return PopupMenuButton(
@@ -182,8 +179,8 @@ class _ShowOrderState extends State<ShowOrder> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => ReturnOrder(
-                                woId: wo.woId,
-                                soId: wo.soId,
+                                woId: widget.orderID,
+                                soId: so.soId,
                                 refresh: refresh,
                               )),
                         );
@@ -196,7 +193,7 @@ class _ShowOrderState extends State<ShowOrder> {
           )
         ],
       ),
-      floatingActionButton: currentButton(wo.progress),
+      floatingActionButton: currentButton(so.progress),
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Column(
@@ -205,7 +202,7 @@ class _ShowOrderState extends State<ShowOrder> {
             const SizedBox(
               height: 20,
             ),
-            wo.status != 'Returned' || wo.status != 'Cancelled' ?
+            so.status != 'Returned' || so.status != 'Cancelled' ?
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -216,37 +213,37 @@ class _ShowOrderState extends State<ShowOrder> {
                       style: TextStyle(fontSize: 12, color: Colors.blue),
                       textAlign: TextAlign.start,
                     ),
-                    wo.progress == 'activation' ?
+                    so.progress == 'activation' ?
                     const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
                     const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
                   ],
                 ),
-                Icon(Icons.chevron_right, color: wo.progress == 'activation' ? Colors.black : Colors.blue,),
+                Icon(Icons.chevron_right, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
                 Column(
                   children: [
                     Text(
                       'Attachment',
-                      style: TextStyle(fontSize: 12, color: wo.progress == 'activation' ? Colors.black : Colors.blue,),
+                      style: TextStyle(fontSize: 12, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
                       textAlign: TextAlign.start,
                     ),
-                    wo.progress == 'attachment' ?
+                    so.progress == 'attachment' ?
                     const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
-                        wo.progress == 'activation' ?
+                        so.progress == 'activation' ?
                         const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
                         const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
                   ],
                 ),
-                Icon(Icons.chevron_right, color: wo.progress == 'activation' || wo.progress == 'attachment' ? Colors.black : Colors.blue,),
+                Icon(Icons.chevron_right, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
                 Column(
                   children: [
                     Text(
                       'Completion',
-                      style: TextStyle(fontSize: 12, color: wo.progress == 'activation' || wo.progress == 'attachment' ? Colors.black : Colors.blue,),
+                      style: TextStyle(fontSize: 12, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
                       textAlign: TextAlign.start,
                     ),
-                    wo.progress == 'completion' || wo.progress == 'close_requested' ?
+                    so.progress == 'completion' || so.progress == 'close_requested' ?
                       const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
-                      wo.progress == 'activation' || wo.progress == 'attachment' ?
+                      so.progress == 'activation' || so.progress == 'attachment' ?
                       const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
                       const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
                   ],
@@ -255,20 +252,28 @@ class _ShowOrderState extends State<ShowOrder> {
             ) : const Divider(),
             const ListTile(
               title: Text(
-                'Work Order Details',
+                'Order Details',
                 style: TextStyle(fontSize: 18),
                 textAlign: TextAlign.start,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(4.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
+                    leading: const Icon(Icons.tag),
+                    title: Text(
+                      so.soName,
+                      style: textStyle(),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.question_mark),
                     title: Text(
-                      wo.status + (wo.progress == 'close_requested' ? ' (Close Requested)' : ''),
+                      so.status + (so.progress == 'close_requested' ? ' (Close Requested)' : ''),
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -276,7 +281,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.calendar_month),
                     title: Text(
-                      wo.date ?? 'N/A',
+                      so.date ?? 'N/A',
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -284,7 +289,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.access_time),
                     title: Text(
-                      wo.time ?? 'N/A',
+                      so.time ?? 'N/A',
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -292,23 +297,23 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.assignment_ind_outlined),
                     title: Text(
-                      wo.requestedBy,
+                      so.requestedBy,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
                   ),
                   InkWell(
                     onTap: () async {
-                      wo.lat != 0
-                          ? MapUtils.openMap(wo.lat, wo.lng)
-                          : (wo.address == ''
+                      so.lat != 0
+                          ? MapUtils.openMap(so.lat, so.lng)
+                          : (so.address == ''
                               ? alertMessage(context, 'Empty address')
-                              : mapPromptDialog(context, wo.address));
+                              : mapPromptDialog(context, so.address));
                     },
                     child: ListTile(
                       leading: const Icon(Icons.home),
                       title: Text(
-                        wo.address,
+                        so.address,
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
@@ -328,14 +333,14 @@ class _ShowOrderState extends State<ShowOrder> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(4.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
                     leading: const Icon(Icons.broadcast_on_personal_outlined),
                     title: Text(
-                      wo.carrier,
+                      so.carrier,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -343,7 +348,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                     leading: const Icon(Icons.signal_cellular_alt),
                     title: Text(
-                      wo.speed,
+                      so.speed,
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -351,7 +356,7 @@ class _ShowOrderState extends State<ShowOrder> {
                   ListTile(
                       leading: const Icon(Icons.person),
                       title: Text(
-                        wo.custName,
+                        so.custName,
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
@@ -360,21 +365,22 @@ class _ShowOrderState extends State<ShowOrder> {
                         children: [
                           InkWell(
                             onTap: () async {
-                              final Uri url = Uri.parse('https://wa.me/${wo.custContact}');
+                              final Uri url = Uri.parse('https://wa.me/${so.custContact}');
                               if(await canLaunchUrl(url)){
                               launchUrl(url, mode: LaunchMode.externalApplication);
                               }
                             },
-                            child: const Icon(Icons.whatsapp),
+                            child: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,),
                           ),
                           InkWell(
                             onTap: () async {
-                              final Uri url = Uri.parse('tel:${wo.custContact}');
+                              alertMessage(context, 'Carrier charges might apply');
+                              final Uri url = Uri.parse('tel:${so.custContact}');
                               if(await canLaunchUrl(url)){
                               launchUrl(url);
                               }
                             },
-                            child: const Icon(Icons.phone),
+                            child: const Icon(Icons.phone, color: Colors.blue,),
                           ),
                         ],)
                   ),
@@ -399,8 +405,8 @@ class _ShowOrderState extends State<ShowOrder> {
                       textAlign: TextAlign.start,
                     ),
                     title: Text(
-                      wo.progress != 'activation'
-                          ? wo.ontSn.toString()
+                      so.progress != 'activation'
+                          ? so.ontSn.toString()
                           : 'Not Activated',
                       style: textStyle(),
                       textAlign: TextAlign.start,
@@ -413,7 +419,7 @@ class _ShowOrderState extends State<ShowOrder> {
                 ],
               ),
             ),
-            wo.progress == 'activation' ? const Divider() : newInstallationAttachments(context, wo.woId, listImage, refresh, _scrollAttachmentKey),
+            so.progress == 'activation' ? const Divider() : newInstallationAttachments(context, widget.orderID, listImage, refresh),
             // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
             // FutureBuilder(
             //     future: WorkOrderApi.getImgAttachments(wo.woId),

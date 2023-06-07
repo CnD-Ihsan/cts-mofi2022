@@ -6,8 +6,6 @@ import 'package:wfm/pages/login.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/route.dart';
 
-import 'models/login_model.dart';
-
 void main() {
   runApp(const MyApp());
 }
@@ -41,7 +39,7 @@ class _MyAppState extends State<MyApp> {
         '/login': (context) => const Login(),
         '/index': (context) =>
             const WorkOrders(user: 'Unauthorized', email: 'Unauthorized'),
-        '/show/:orderID': (context) => const ShowOrder(
+        '/show/:orderID': (context) => const ShowServiceOrder(
               orderID: 0,
             ),
       },

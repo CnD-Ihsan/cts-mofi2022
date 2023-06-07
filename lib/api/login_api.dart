@@ -4,10 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginApi{
-  static const wfmHost = '80.80.2.254:8080';
+  static const wfmHost = 'http://80.80.2.254:8080/api';
+  // static const wfmHost = 'https://wfm.ctsabah.net/api';
 
   static Future<bool> isUserActive(String? email) async{
-    var uri = Uri.http('80.80.2.254:8080', '/api/auth/isUserActive');
+    var uri = Uri.parse('$wfmHost/auth/isUserActive');
+    // var uri = Uri.http(_uri);
 
     try{
       final response = await http.post(
@@ -18,7 +20,7 @@ class LoginApi{
           body: {
             "email" : email,
           }
-      ).timeout(const Duration(seconds:5));
+      ).timeout(const Duration(seconds:10));
 
       Map data = jsonDecode(response.body);
 
@@ -33,8 +35,8 @@ class LoginApi{
   }
 
   static Future<LoginResponseModel> loginRequest(LoginRequestModel login) async{
-    var uri = Uri.http('80.80.2.254:8080', '/api/auth/login');
-
+    // var uri = Uri.parse('$wfmHost/login');
+    var uri = Uri.parse('$wfmHost/auth/login');
     //Initialize shared preferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -42,15 +44,19 @@ class LoginApi{
       final response = await http.post(
           uri,
           headers: {
-            "useQueryString" : "true"
+            "useQueryString" : "true",
+            "Content" : "application/json",
+            "Accept" : "application/json",
+            "Authorization" : ""
           },
           body: {
             "email" : login.email,
             "password" : login.password,
           }
-      ).timeout(const Duration(seconds:5));
+      ).timeout(const Duration(seconds:10));
 
       Map data = jsonDecode(response.body);
+      print(response.body);
 
       if(response.statusCode == 200){
         data['user'] = 'Admin';

@@ -20,7 +20,7 @@ class RouteGenerator {
       case '/show':
         if (args is num) {
           final orderId = args;
-          return MaterialPageRoute(builder: (_) => ShowOrder(orderID: orderId));
+          return MaterialPageRoute(builder: (_) => ShowServiceOrder(orderID: orderId));
         }
         return _errorRoute();
       default:

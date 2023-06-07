@@ -268,7 +268,7 @@ class _ReturnOrderState extends State<ReturnOrder> {
                                 settings: const RouteSettings(
                                   name: "/show",
                                 ),
-                                builder: (context) => ShowOrder(
+                                builder: (context) => ShowServiceOrder(
                                       orderID: widget.woId,
                                     )),
                           );

@@ -179,7 +179,7 @@ class __FormContentState extends State<_FormContent> {
                   ),
                 ),
                 onPressed: () async {
-                  if ((_formKey.currentState?.validate() ?? false)) {
+                  if (_formKey.currentState?.validate() ?? false) {
                     showLoaderDialog(context);
                     loginResponse =
                         await LoginApi.loginRequest(LoginRequestModel(
@@ -232,7 +232,10 @@ class __FormContentState extends State<_FormContent> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        return alert;
+        return WillPopScope(
+          onWillPop: () async => false,
+            child: alert
+        );
       },
     );
   }

@@ -21,7 +21,6 @@ class Attachments extends StatefulWidget {
 
 class _AttachmentsState extends State<Attachments> {
   late num woId;
-  // String host = 'http://80.80.2.254:8080/api/work-orders/order-image/';
   List<String> urlImages = [''];
 
   @override
@@ -90,16 +89,7 @@ class _AttachmentsState extends State<Attachments> {
                             textAlign: TextAlign.center,
                           ),
                           onTap: () async {
-                            // await imagePickerPrompt(context, 'ontsn', woId);
                             if(mounted){
-                              // Navigator.pop(context);
-                              // Navigator.push(context, MaterialPageRoute(
-                              //     settings: const RouteSettings(
-                              //       name: "/show",
-                              //     ),
-                              //     builder: (context) => const ShowOrder(
-                              //       orderID: 316,
-                              //     )),);
                             }
                           },
                         ),
@@ -178,7 +168,7 @@ Widget noAttachmentWidget(){
   );
 }
 
-Widget newInstallationAttachments(BuildContext context, num woId, Map listImage, Function(Map, String) refresh, GlobalKey scrollKey) {
+Widget newInstallationAttachments(BuildContext context, num woId, Map listImage, Function(Map, String) refresh) {
   return Column(
     children: [
       const ListTile(
@@ -233,13 +223,13 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                               width: 100,
                               child: CachedNetworkImage(
                                 fit: BoxFit.cover,
-                                imageUrl: host + (listImage['ontsn'][index]),
+                                imageUrl: host + (listImage['ontsn'][index]['name']),
                                 placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
                             ),
                             onLongPress: (){
-                              deleteAttachment(context, woId, listImage['ontsn'][index], refresh, 'ontsn');
+                              deleteAttachment(context, woId, listImage['ontsn'][index]['name'], refresh, 'ontsn');
                             },
                             onTap: () {
                               openGallery(context, List<String>.from(listImage['ontsn']), index);
@@ -250,7 +240,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
             ),
             const ListTile(
               leading: Icon(Icons.assignment),
-              title: Text('Customer Signature *'),
+              title: Text('Customer Signature  *'),
             ),
             Container(
               height: 120.0,
@@ -404,13 +394,13 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                               width: 100,
                               child: CachedNetworkImage(
                                 fit: BoxFit.cover,
-                                imageUrl: host + (listImage['rgw'][index]),
+                                imageUrl: host + (listImage['rgw'][index]['name']),
                                 placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
                             ),
                             onLongPress: (){
-                              deleteAttachment(context, woId, listImage['rgw'][index], refresh, 'rgw');
+                              deleteAttachment(context, woId, listImage['rgw'][index]['name'], refresh, 'rgw');
                             },
                             onTap: () {
                               openGallery(context, List<dynamic>.from(listImage['rgw']), index);
@@ -448,6 +438,209 @@ Widget newInstallationAttachments(BuildContext context, num woId, Map listImage,
                       ),
                     ),
                   ),
+                  ListView.builder(
+                      reverse: false,
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: listImage['web']?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        // if(listImage[index])
+                        return GestureDetector(
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              child: CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: host + (listImage['web'][index]),
+                                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) => const Icon(Icons.error),
+                              ),
+                            ),
+                            onLongPress: (){
+                              deleteAttachment(context, woId, listImage['web'][index], refresh, 'web');
+                            },
+                            onTap: () {
+                              openGallery(context, List<dynamic>.from(listImage['web']), index);
+                            });
+                      }),
+                ],
+              ),
+            ),
+            // SubmitONT(
+            //   ontID: wo.ontActId,
+            // ),
+            const SizedBox(
+              height: 20,
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImage, String progress, Function(Map, String) refresh) {
+  return Column(
+    children: [
+      ListTile(
+        title: const Text(
+          'Attachments',
+          style: TextStyle(fontSize: 18),
+          textAlign: TextAlign.start,
+        ),
+        subtitle: progress != "close_requested" ? Text('Use button to add image. Tap & hold image to delete them.') : null,
+      ),
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ListTile(
+              leading: Icon(Icons.assignment),
+              title: Text('Customer Signature  *'),
+            ),
+            Container(
+              height: 120.0,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: <Widget>[
+                  progress != "close_requested" ? //No more uploading if close requested
+                  Container(
+                    width: 120.0,
+                    child: Center(
+                      child: ListTile(
+                        title: const Icon(
+                          Icons.add_circle_outline,
+                          size: 45,
+                        ),
+                        subtitle: const Text(
+                          'Add image',
+                          textAlign: TextAlign.center,
+                        ),
+                        onTap: () async {
+                          imagePickerPrompt(context, 'sign', woId, refresh);
+                          // final XFile? image = await ImagePicker()
+                          //     .pickImage(source: ImageSource.gallery);
+                        },
+                      ),
+                    ),
+                  ) : const SizedBox(width: 5,),
+                  ListView.builder(
+                      reverse: false,
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: listImage['sign']?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        // if(listImage[index])
+                        return GestureDetector(
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              child: CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: host + (listImage['sign'][index]['name']),
+                                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) => const Icon(Icons.error),
+                              ),
+                            ),
+                            onLongPress: (){
+                              deleteAttachment(context, woId, listImage['sign'][index]['name'], refresh, 'sign');
+                            },
+                            onTap: () {
+                              openGallery(context, List<dynamic>.from(listImage['sign']), index);
+                            });
+                      }),
+                ],
+              ),
+            ),
+            const ListTile(
+              leading: Icon(Icons.network_check),
+              title: Text('Speed Test *'),
+            ),
+            Container(
+              height: 120.0,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: <Widget>[
+                  progress != "close_requested" ?
+                  Container(
+                    width: 120.0,
+                    child: Center(
+                      child: ListTile(
+                        title: const Icon(
+                          Icons.add_circle_outline,
+                          size: 45,
+                        ),
+                        subtitle: const Text(
+                          'Add image',
+                          textAlign: TextAlign.center,
+                        ),
+                        onTap: () async {
+                          imagePickerPrompt(context, 'speedtest', woId, refresh);
+                          // final XFile? image = await ImagePicker()
+                          //     .pickImage(source: ImageSource.gallery);
+                        },
+                      ),
+                    ),
+                  ) : const SizedBox(width: 5,),
+                  ListView.builder(
+                      reverse: false,
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: listImage['speedtest']?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        // if(listImage[index])
+                        return GestureDetector(
+                            child: Container(
+                              height: 100,
+                              width: 100,
+                              child: CachedNetworkImage(
+                                fit: BoxFit.cover,
+                                imageUrl: host + (listImage['speedtest'][index]['name']),
+                                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) => const Icon(Icons.error),
+                              ),
+                            ),
+                            onLongPress: (){
+                              deleteAttachment(context, woId, listImage['speedtest'][index]['name'], refresh, 'speedtest');
+                            },
+                            onTap: () {
+                              openGallery(context, List<dynamic>.from(listImage['speedtest']), index);
+                            });
+                      }),
+                ],
+              ),
+            ),
+            const ListTile(
+              leading: Icon(Icons.web_outlined),
+              title: Text('Web Attachments'),
+            ),
+            Container(
+              height: 120.0,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: <Widget>[
+                  progress != "close_requested" ?
+                  Container(
+                    width: 120.0,
+                    child: Center(
+                      child: ListTile(
+                        title: const Icon(
+                          Icons.add_circle_outline,
+                          size: 45,
+                        ),
+                        subtitle: const Text(
+                          'Add image',
+                          textAlign: TextAlign.center,
+                        ),
+                        onTap: () async {
+                          imagePickerPrompt(context, 'web', woId, refresh);
+                          // final XFile? image = await ImagePicker()
+                          //     .pickImage(source: ImageSource.gallery);
+                        },
+                      ),
+                    ),
+                  ) : const SizedBox(width: 20,),
                   ListView.builder(
                       reverse: false,
                       shrinkWrap: true,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:image_picker/image_picker.dart';
@@ -98,6 +99,66 @@ loadingScreen(BuildContext context){
           );
         });
   });
+}
+
+phonePromptDialog(BuildContext context, String contact) {
+  AlertDialog alert = AlertDialog(
+    title: const Text('Contact Customer'),
+    insetPadding: EdgeInsets.zero,
+    contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+    content: const Text(
+        'Carrier charges might apply. Proceed?'),
+    actions: <Widget>[
+      TextButton(
+        child: const Text('Confirm'),
+        onPressed: () async {
+          final Uri url = Uri.parse('tel:$contact');
+          if(await canLaunchUrl(url)){
+          launchUrl(url);
+          }
+        },
+      ),
+    ],
+  );
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+}
+
+whatsappPromptDialog(BuildContext context, String contact) {
+  AlertDialog alert = AlertDialog(
+    title: const Text('WhatsApp Customer'),
+    // contentPadding: EdgeInsets.fromLTRB(24, 12, 0, 0),
+    insetPadding: EdgeInsets.zero,
+    contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+    alignment: Alignment.center,
+    content: const Text(
+        'Opening external application. Proceed?'
+    ),
+    actions: <Widget>[
+      TextButton(
+        child: const Text('Confirm'),
+        onPressed: () async {
+          Navigator.pop(context);
+          final Uri url = Uri.parse('https://wa.me/$contact');
+          if(await canLaunchUrl(url)){
+            launchUrl(url, mode: LaunchMode.externalApplication);
+          }
+        },
+      ),
+    ],
+  );
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
 }
 
 mapPromptDialog(BuildContext context, String address) {

@@ -4,16 +4,16 @@ class _ArticleDescription extends StatelessWidget {
   const _ArticleDescription({
     required this.title,
     required this.subtitle,
-    required this.author,
-    required this.publishDate,
-    required this.readDuration,
+    required this.group,
+    required this.date,
+    required this.time,
   });
 
   final String title;
   final String subtitle;
-  final String author;
-  final String publishDate;
-  final String readDuration;
+  final String group;
+  final String date;
+  final String time;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,7 @@ class _ArticleDescription extends StatelessWidget {
             children: <Widget>[
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
               Text(
-                author,
+                group,
                 style: const TextStyle(
                   fontSize: 12.0,
                   color: Colors.black87,
@@ -60,7 +60,7 @@ class _ArticleDescription extends StatelessWidget {
               ),
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
               Text(
-                '$publishDate, $readDuration',
+                '$date, $time',
                 style: const TextStyle(
                   fontSize: 12.0,
                   color: Colors.black54,
@@ -80,17 +80,17 @@ class CustomListItemTwo extends StatelessWidget {
     required this.thumbnail,
     required this.title,
     required this.subtitle,
-    required this.author,
-    required this.publishDate,
-    required this.readDuration,
+    required this.group,
+    required this.date,
+    required this.time,
   });
 
   final Widget thumbnail;
   final String title;
   final String subtitle;
-  final String author;
-  final String publishDate;
-  final String readDuration;
+  final String group;
+  final String date;
+  final String time;
 
   @override
   Widget build(BuildContext context) {
@@ -118,9 +118,9 @@ class CustomListItemTwo extends StatelessWidget {
                   child: _ArticleDescription(
                     title: title,
                     subtitle: subtitle,
-                    author: author,
-                    publishDate: publishDate,
-                    readDuration: readDuration,
+                    group: group,
+                    date: date,
+                    time: time,
                   ),
                 ),
               ),
