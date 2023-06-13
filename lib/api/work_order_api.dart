@@ -9,46 +9,54 @@ import 'package:wfm/models/tt_model.dart';
 import 'package:http/http.dart' as http;
 
 class WorkOrderApi {
-  static var wfmHost = 'http://80.80.2.254:8080/api';
-  // static var wfmHost = 'https://wfm.ctsabah.net/api';
+  // static var wfmHost = 'http://80.80.2.254:8080/api';
+  static var wfmHost = 'https://wfm.ctsabah.net/api';
 
   static Future<List<WorkOrder>> getWorkOrderList() async {
     var uri = Uri.parse('$wfmHost/work-orders/all');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? token = prefs.getString('token');
-
-    final response = await http.get(uri, headers: {
-      "useQueryString": "true",
-      "Content-Type": "application/json",
-      // "Authorization": "Bearer $token",
-    });
+    String? token = prefs.getString('token');
 
     List<WorkOrder> workOrderList = [];
-    var jsonData = jsonDecode(response.body);
-    String? tempDate;
-    String? tempTime;
-    for (var data in jsonData) {
-      if (data.containsKey('start_date') && data['start_date'] != null) {
-        DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
-        DateTime dt = df.parse(data['start_date']);
-        tempDate = DateFormat.MMMMd('en_US').format(dt).toString();
-        tempTime = DateFormat.jm().format(dt).toString();
-      }
+    try{
+      final response = await http.get(uri, headers: {
+        "useQueryString": "true",
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      }).timeout(const Duration(seconds:10));
 
-      WorkOrder wo = WorkOrder(
-        woId: data['wo_id'],
-        ftthId: data['service_order'],
-        woName: data['name'],
-        status: data['status'],
-        requestedBy: data['requested_by'],
-        address: data['cust_addr_name'],
-        date: tempDate,
-        time: tempTime,
-        group: data['group'],
-        type: data['type'],
-      );
-      workOrderList.add(wo);
+      // Map jsonData = jsonDecode(response.body);
+
+      var jsonData = jsonDecode(response.body);
+      String? tempDate;
+      String? tempTime;
+      for (var data in jsonData) {
+        if (data.containsKey('start_date') && data['start_date'] != null) {
+          DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
+          DateTime dt = df.parse(data['start_date']);
+          tempDate = DateFormat.MMMMd('en_US').format(dt).toString();
+          tempTime = DateFormat.jm().format(dt).toString();
+        }
+
+        WorkOrder wo = WorkOrder(
+          woId: data['wo_id'],
+          ftthId: data['service_order'],
+          woName: data['name'],
+          status: data['status'],
+          requestedBy: data['requested_by'],
+          address: data['cust_addr_name'],
+          date: tempDate,
+          time: tempTime,
+          group: data['group'],
+          type: data['type'],
+        );
+        workOrderList.add(wo);
+      }
+      return workOrderList;
+    }catch(e){
+      print(e);
     }
+
     return workOrderList;
   }
 

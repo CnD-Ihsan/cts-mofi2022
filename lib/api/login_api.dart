@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginApi{
-  static const wfmHost = 'http://80.80.2.254:8080/api';
-  // static const wfmHost = 'https://wfm.ctsabah.net/api';
+  // static const wfmHost = 'http://80.80.2.254:8080/api';
+  static const wfmHost = 'https://wfm.ctsabah.net/api';
 
   static Future<bool> isUserActive(String? email) async{
     var uri = Uri.parse('$wfmHost/auth/isUserActive');
@@ -35,8 +35,8 @@ class LoginApi{
   }
 
   static Future<LoginResponseModel> loginRequest(LoginRequestModel login) async{
-    // var uri = Uri.parse('$wfmHost/login');
-    var uri = Uri.parse('$wfmHost/auth/login');
+    var uri = Uri.parse('$wfmHost/login');
+    // var uri = Uri.parse('$wfmHost/auth/login');
     //Initialize shared preferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
 

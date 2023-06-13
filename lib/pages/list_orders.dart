@@ -28,13 +28,6 @@ class _WorkOrdersState extends State<WorkOrders> {
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   late SharedPreferences prefs;
 
-  Map logoDict = {
-    'MXS': 'maxis',
-    'CEL': 'celcom',
-    'DGI': 'digi',
-    'else': 'cts',
-  };
-
   @override
   void initState() {
     getPrefs();
@@ -61,20 +54,6 @@ class _WorkOrdersState extends State<WorkOrders> {
     );
   }
 
-  // setType(String type){
-  //   return ListTile(
-  //     leading: const Icon(Icons.circle_notifications),
-  //     title: Text(type),
-  //     selectedColor: Colors.blue,
-  //     selected: filterNotifier.value['type'] == 'Pending' ? true : false,
-  //     onTap: () async {
-  //       filterNotifier.value['status'] = 'Pending';
-  //       Navigator.pop(context);
-  //       setState(() {});
-  //     },
-  //   );
-  // }
-
   getPrefs() async {
     // user = widget.user;
     // email = widget.email;
@@ -90,18 +69,7 @@ class _WorkOrdersState extends State<WorkOrders> {
       appBar: AppBar(
         title: InkWell(
             child: Text('${filterNotifier.value['type'] ?? filterNotifier.value['status'] ?? 'All'} Orders'),
-          onTap: (){
-              Navigator.push(
-              context,
-              MaterialPageRoute(
-                  settings: const RouteSettings(
-                    name: "/show",
-                  ),
-                  builder: (context) => ShowServiceOrder(
-                    orderID: 6,
-                  )),
-            );
-          },
+          onTap: (){},
         ),
         actions: [
           Builder(
@@ -110,7 +78,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                   onPressed: () {
                     Scaffold.of(context).openEndDrawer();
                   },
-                  icon: Icon(Icons.filter_list_outlined));
+                  icon: const Icon(Icons.filter_list_outlined));
             }
           )
         ],
@@ -273,17 +241,11 @@ class _WorkOrdersState extends State<WorkOrders> {
                       itemCount: list.length,
                       itemBuilder: (context, index) {
                         WorkOrder wo = list[list.length - index - 1];
-                        var logo = 'else';
+                        var logo = 'cts';
 
-                        try {
-                          var temp = wo.woName.substring(0, 3);
-                          if (logoDict.containsKey(temp)) {
-                            logo = temp;
-                          }
-                        } catch (e) {
-                          print(e);
+                        if(!wo.requestedBy.contains('CTS')){
+                          logo = wo.requestedBy.toLowerCase();
                         }
-                        logo = logoDict[logo];
 
                         if(wo.type != 'Troubleshoot Ticket'){
                           return InkWell(
