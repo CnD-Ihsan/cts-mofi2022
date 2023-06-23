@@ -62,6 +62,8 @@ class _WorkOrdersState extends State<WorkOrders> {
     email = prefs.getString('email') ?? 'Unauthorized';
   }
 
+  List<WorkOrder> list = [];
+
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +159,7 @@ class _WorkOrdersState extends State<WorkOrders> {
               ),
               setFilter('New Installation', 'type',  const Icon(Icons.build)),
               setFilter('Termination', 'type',  const Icon(Icons.dnd_forwardslash)),
-              setFilter('Troubleshoot Ticket', 'type',  const Icon(Icons.settings)),
+              setFilter('Troubleshoot', 'type',  const Icon(Icons.settings)),
               setFilter('All Orders', 'type',  const Icon(Icons.select_all)),
               const Divider(),
               ListTile(
@@ -221,7 +223,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                 future: WorkOrderApi.getWorkOrderList(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    List<WorkOrder> list = snapshot.data!;
+                    list = snapshot.data!;
 
                     if (filterNotifier.value['status'] != null) {
                       list = list
@@ -236,71 +238,74 @@ class _WorkOrdersState extends State<WorkOrders> {
                           .toList();
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(10.0),
-                      itemCount: list.length,
-                      itemBuilder: (context, index) {
-                        WorkOrder wo = list[list.length - index - 1];
-                        var logo = 'cts';
+                    return RefreshIndicator(
+                      onRefresh: _pullRefresh,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(10.0),
+                        itemCount: list.length,
+                        itemBuilder: (context, index) {
+                          WorkOrder wo = list[list.length - index - 1];
+                          var logo = 'cts';
 
-                        if(!wo.requestedBy.contains('CTS')){
-                          logo = wo.requestedBy.toLowerCase();
-                        }
+                          if(!wo.requestedBy.contains('CTS')){
+                            logo = wo.requestedBy.toLowerCase();
+                          }
 
-                        if(wo.type != 'Troubleshoot Ticket'){
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings: const RouteSettings(
-                                      name: "/showServiceOrder",
-                                    ),
-                                    builder: (context) => ShowServiceOrder(
-                                      orderID: wo.woId,
-                                    )),
-                              );
-                            },
-                            child: CustomListItemTwo(
-                              thumbnail: Image.asset(
-                                'assets/img/logo/$logo.png',
-                                fit: BoxFit.fitWidth,
+                          if(wo.type != 'Troubleshoot'){
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      settings: const RouteSettings(
+                                        name: "/showServiceOrder",
+                                      ),
+                                      builder: (context) => ShowServiceOrder(
+                                        orderID: wo.woId,
+                                      )),
+                                );
+                              },
+                              child: CustomListItemTwo(
+                                thumbnail: Image.asset(
+                                  'assets/img/logo/$logo.png',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                                title: wo.woName,
+                                subtitle: wo.address,
+                                group: '${wo.type} (${wo.status})' ?? 'Undefined',
+                                date: wo.date ?? 'Unassigned',
+                                time: wo.time ?? 'Unassigned',
                               ),
-                              title: wo.woName,
-                              subtitle: wo.address,
-                              group: wo.group ?? 'Undefined',
-                              date: wo.date ?? 'Unassigned',
-                              time: wo.time ?? 'Unassigned',
-                            ),
-                          );
-                        }else{
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings: const RouteSettings(
-                                      name: "/show",
-                                    ),
-                                    builder: (context) => ShowTroubleshootOrder(
-                                      orderID: wo.woId,
-                                    )),
-                              );
-                            },
-                            child: CustomListItemTwo(
-                              thumbnail: Image.asset(
-                                'assets/img/logo/$logo.png',
-                                fit: BoxFit.fitWidth,
+                            );
+                          }else{
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      settings: const RouteSettings(
+                                        name: "/show",
+                                      ),
+                                      builder: (context) => ShowTroubleshootOrder(
+                                        orderID: wo.woId,
+                                      )),
+                                );
+                              },
+                              child: CustomListItemTwo(
+                                thumbnail: Image.asset(
+                                  'assets/img/logo/$logo.png',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                                title: wo.woName,
+                                subtitle: wo.address,
+                                group: wo.type ?? 'Undefined',
+                                date: wo.date ?? 'Unassigned',
+                                time: wo.time ?? 'Unassigned',
                               ),
-                              title: wo.woName,
-                              subtitle: wo.address,
-                              group: wo.group ?? 'Undefined',
-                              date: wo.date ?? 'Unassigned',
-                              time: wo.time ?? 'Unassigned',
-                            ),
-                          );
-                        }
-                      },
+                            );
+                          }
+                        },
+                      ),
                     );
                   } else if(snapshot.hasError){
                     return const Center(
@@ -315,12 +320,19 @@ class _WorkOrdersState extends State<WorkOrders> {
     );
   }
 
-  Future<void> refreshList() async {
-    refreshKey.currentState?.show(
-        atTop:
-        true); // change atTop to false to show progress indicator at bottom
-    await Future.delayed(Duration(seconds: 2)); //wait here for 2 second
+  // Future<void> refreshList() async {
+  //   refreshKey.currentState?.show(
+  //       atTop:
+  //       true); // change atTop to false to show progress indicator at bottom
+  //   await Future.delayed(Duration(seconds: 2)); //wait here for 2 second
+  //   setState(() {
+  //   });
+  // }
+
+  Future<void> _pullRefresh() async {
+    List<WorkOrder> refreshList = await WorkOrderApi.getWorkOrderList();
     setState(() {
+      list = refreshList;
     });
   }
 }

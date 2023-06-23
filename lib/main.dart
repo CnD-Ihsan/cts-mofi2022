@@ -68,21 +68,26 @@ class _LandingState extends State<Landing> {
   _loadUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool activeUser = await LoginApi.isUserActive(prefs.getString('email'));
+    print(activeUser);
+
     if (prefs.containsKey('user') && activeUser) {
-      if(mounted){}
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WorkOrders(
-              user: prefs.getString('user') ?? 'NullUser',
-              email: prefs.getString('email') ?? 'NullEmail'),
-          settings: const RouteSettings(name: '/list'),
-        ),
-      );
+      if(mounted){
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WorkOrders(
+                user: prefs.getString('user') ?? 'NullUser',
+                email: prefs.getString('email') ?? 'NullEmail'),
+            settings: const RouteSettings(name: '/list'),
+          ),
+        );
+      }
     } else {
-      if (mounted) {}
-      Navigator.pushNamedAndRemoveUntil(
-          context, '/login', ModalRoute.withName('/login'));
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/login', ModalRoute.withName('/login'));
+      }
+
     }
   }
 

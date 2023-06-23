@@ -76,51 +76,53 @@ class _SubmitONTState extends State<SubmitONT> {
                 }
                 showLoaderDialog(context);
                 response = await WorkOrderApi.activateOnt(woId, txt.text);
-                if (mounted) {}
-                if (response.containsKey('data')) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      // behavior: SnackBarBehavior.floating,
-                      content: Row(
-                        children: const [
-                          Text('ONT Activated'),
-                          Icon(
-                            Icons.check_circle,
-                            color: Colors.white,
-                          ),
-                        ],
+                if (mounted) {
+                  if (response.containsKey('data')) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        // behavior: SnackBarBehavior.floating,
+                        content: Row(
+                          children: [
+                            Text('ONT Activated'),
+                            Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: Duration(milliseconds: 3000),
                       ),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(milliseconds: 3000),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Expanded(
-                              child:
-                                  Text('Error: ${response['errorMessage']}')),
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.white,
-                          ),
-                        ],
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            Expanded(
+                                child:
+                                Text('Error: ${response['errorMessage']}')),
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(milliseconds: 3000),
                       ),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(milliseconds: 3000),
+                    );
+                  }
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) => ShowServiceOrder(orderID: woId),
                     ),
+                        (route) => route.isFirst,
+                    // ModalRoute.of(context, ),
                   );
                 }
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) => ShowServiceOrder(orderID: woId),
-                  ),
-                  (route) => route.isFirst,
-                  // ModalRoute.of(context, ),
-                );
+
               },
               child: const Text('Submit'),
             ),

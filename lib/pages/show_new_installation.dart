@@ -194,239 +194,242 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
         ],
       ),
       floatingActionButton: currentButton(so.progress),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(
-              height: 20,
-            ),
-            so.status != 'Returned' || so.status != 'Cancelled' ?
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  children: [
-                    const Text(
-                      'Activation',
-                      style: TextStyle(fontSize: 12, color: Colors.blue),
-                      textAlign: TextAlign.start,
-                    ),
-                    so.progress == 'activation' ?
-                    const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
-                    const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
-                  ],
-                ),
-                Icon(Icons.chevron_right, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
-                Column(
-                  children: [
-                    Text(
-                      'Attachment',
-                      style: TextStyle(fontSize: 12, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
-                      textAlign: TextAlign.start,
-                    ),
-                    so.progress == 'attachment' ?
-                    const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
-                        so.progress == 'activation' ?
+      body: RefreshIndicator(
+        onRefresh: _pullRefresh,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const SizedBox(
+                height: 20,
+              ),
+              so.status != 'Returned' || so.status != 'Cancelled' ?
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      const Text(
+                        'Activation',
+                        style: TextStyle(fontSize: 12, color: Colors.blue),
+                        textAlign: TextAlign.start,
+                      ),
+                      so.progress == 'activation' ?
+                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                      const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                    ],
+                  ),
+                  Icon(Icons.chevron_right, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
+                  Column(
+                    children: [
+                      Text(
+                        'Attachment',
+                        style: TextStyle(fontSize: 12, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
+                        textAlign: TextAlign.start,
+                      ),
+                      so.progress == 'attachment' ?
+                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                          so.progress == 'activation' ?
+                          const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
+                          const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                    ],
+                  ),
+                  Icon(Icons.chevron_right, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
+                  Column(
+                    children: [
+                      Text(
+                        'Completion',
+                        style: TextStyle(fontSize: 12, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
+                        textAlign: TextAlign.start,
+                      ),
+                      so.progress == 'completion' || so.progress == 'close_requested' ?
+                        const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                        so.progress == 'activation' || so.progress == 'attachment' ?
                         const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
                         const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
-                  ],
+                    ],
+                  ),
+                ],
+              ) : const Divider(),
+              const ListTile(
+                title: Text(
+                  'Order Details',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.start,
                 ),
-                Icon(Icons.chevron_right, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
-                Column(
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Completion',
-                      style: TextStyle(fontSize: 12, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
-                      textAlign: TextAlign.start,
+                    ListTile(
+                      leading: const Icon(Icons.tag),
+                      title: Text(
+                        so.soName,
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
                     ),
-                    so.progress == 'completion' || so.progress == 'close_requested' ?
-                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
-                      so.progress == 'activation' || so.progress == 'attachment' ?
-                      const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
-                      const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                    ListTile(
+                      leading: const Icon(Icons.question_mark),
+                      title: Text(
+                        so.status + (so.progress == 'close_requested' ? ' (Close Requested)' : ''),
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.calendar_month),
+                      title: Text(
+                        so.date ?? 'N/A',
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.access_time),
+                      title: Text(
+                        so.time ?? 'N/A',
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.assignment_ind_outlined),
+                      title: Text(
+                        so.requestedBy,
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        so.lat != 0
+                            ? MapUtils.openMap(so.lat, so.lng)
+                            : (so.address == ''
+                                ? alertMessage(context, 'Empty address')
+                                : mapPromptDialog(context, so.address));
+                      },
+                      child: ListTile(
+                        leading: const Icon(Icons.home),
+                        title: Text(
+                          so.address,
+                          style: textStyle(),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
                   ],
                 ),
-              ],
-            ) : const Divider(),
-            const ListTile(
-              title: Text(
-                'Order Details',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.start,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.tag),
-                    title: Text(
-                      so.soName,
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.question_mark),
-                    title: Text(
-                      so.status + (so.progress == 'close_requested' ? ' (Close Requested)' : ''),
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.calendar_month),
-                    title: Text(
-                      so.date ?? 'N/A',
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.access_time),
-                    title: Text(
-                      so.time ?? 'N/A',
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.assignment_ind_outlined),
-                    title: Text(
-                      so.requestedBy,
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () async {
-                      so.lat != 0
-                          ? MapUtils.openMap(so.lat, so.lng)
-                          : (so.address == ''
-                              ? alertMessage(context, 'Empty address')
-                              : mapPromptDialog(context, so.address));
-                    },
-                    child: ListTile(
-                      leading: const Icon(Icons.home),
+              const ListTile(
+                title: Text(
+                  'Customer Details',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.broadcast_on_personal_outlined),
                       title: Text(
-                        so.address,
+                        so.carrier,
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
-              ),
-            ),
-            const ListTile(
-              title: Text(
-                'Customer Details',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.start,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.broadcast_on_personal_outlined),
-                    title: Text(
-                      so.carrier,
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.signal_cellular_alt),
-                    title: Text(
-                      so.speed,
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                      leading: const Icon(Icons.person),
+                    ListTile(
+                      leading: const Icon(Icons.signal_cellular_alt),
                       title: Text(
-                        so.custName,
+                        so.speed,
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
-                      trailing: Wrap(
-                        spacing: 12,
-                        children: [
-                          InkWell(
-                            onTap: () async {
-                              final Uri url = Uri.parse('https://wa.me/${so.custContact}');
-                              if(await canLaunchUrl(url)){
-                              launchUrl(url, mode: LaunchMode.externalApplication);
-                              }
-                            },
-                            child: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,),
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              alertMessage(context, 'Carrier charges might apply');
-                              final Uri url = Uri.parse('tel:${so.custContact}');
-                              if(await canLaunchUrl(url)){
-                              launchUrl(url);
-                              }
-                            },
-                            child: const Icon(Icons.phone, color: Colors.blue,),
-                          ),
-                        ],)
-                  ),
-                  // ListTile(
-                  //   leading: const Icon(Icons.phone),
-                  //   onTap: () async {
-                  //     final Uri url = Uri.parse('tel:${wo.custContact}');
-                  //     if(await canLaunchUrl(url)){
-                  //       launchUrl(url);
-                  //     }
-                  //   },
-                  //   title: Text(
-                  //     wo.custContact,
-                  //     style: textStyle(),
-                  //     textAlign: TextAlign.start,
-                  //   ),
-                  // ),
-                  ListTile(
-                    leading: const Text(
-                      'ONT',
-                      style: TextStyle(fontSize: 14),
-                      textAlign: TextAlign.start,
                     ),
-                    title: Text(
-                      so.progress != 'activation'
-                          ? so.ontSn.toString()
-                          : 'Not Activated',
-                      style: textStyle(),
-                      textAlign: TextAlign.start,
+                    ListTile(
+                        leading: const Icon(Icons.person),
+                        title: Text(
+                          so.custName,
+                          style: textStyle(),
+                          textAlign: TextAlign.start,
+                        ),
+                        trailing: Wrap(
+                          spacing: 12,
+                          children: [
+                            InkWell(
+                              onTap: () async {
+                                final Uri url = Uri.parse('https://wa.me/+6${so.custContact}');
+                                if(await canLaunchUrl(url)){
+                                launchUrl(url, mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              child: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,),
+                            ),
+                            InkWell(
+                              onTap: () async {
+                                await phonePromptDialog(context, so.custContact);
+                                // final Uri url = Uri.parse('tel:${so.custContact}');
+                                // if(await canLaunchUrl(url)){
+                                //   launchUrl(url);
+                                // }
+                              },
+                              child: const Icon(Icons.phone, color: Colors.blue,),
+                            ),
+                          ],)
                     ),
-                  ),
-                  SizedBox(
-                    key: _scrollAttachmentKey,
-                    height: 20,
-                  ),
-                ],
+                    // ListTile(
+                    //   leading: const Icon(Icons.phone),
+                    //   onTap: () async {
+                    //     final Uri url = Uri.parse('tel:${wo.custContact}');
+                    //     if(await canLaunchUrl(url)){
+                    //       launchUrl(url);
+                    //     }
+                    //   },
+                    //   title: Text(
+                    //     wo.custContact,
+                    //     style: textStyle(),
+                    //     textAlign: TextAlign.start,
+                    //   ),
+                    // ),
+                    ListTile(
+                      leading: const Text(
+                        'ONT',
+                        style: TextStyle(fontSize: 14),
+                        textAlign: TextAlign.start,
+                      ),
+                      title: Text(
+                        so.progress != 'activation'
+                            ? so.ontSn.toString()
+                            : 'Not Activated',
+                        style: textStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    SizedBox(
+                      key: _scrollAttachmentKey,
+                      height: 20,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            so.progress == 'activation' ? const Divider() : newInstallationAttachments(context, widget.orderID, listImage, refresh),
-            // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
-            // FutureBuilder(
-            //     future: WorkOrderApi.getImgAttachments(wo.woId),
-            //     builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            //       return Attachments(woId: wo.woId, urlImages: wo.img ?? []);
-            // })
-          ],
+              so.progress == 'activation' ? const Divider() : newInstallationAttachments(context, widget.orderID, listImage, refresh),
+              // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
+              // FutureBuilder(
+              //     future: WorkOrderApi.getImgAttachments(wo.woId),
+              //     builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              //       return Attachments(woId: wo.woId, urlImages: wo.img ?? []);
+              // })
+            ],
+          ),
         ),
       ),
     );
@@ -434,5 +437,12 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
 
   textStyle() {
     return const TextStyle(fontSize: 14, color: Colors.black87);
+  }
+
+  Future<void> _pullRefresh() async {
+    ServiceOrder _so = await WorkOrderApi.getServiceOrder(widget.orderID);
+    setState(() {
+      so = _so;
+    });
   }
 }

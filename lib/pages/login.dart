@@ -10,14 +10,14 @@ class Login extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool _isSmallScreen = MediaQuery.of(context).size.width < 600;
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
         body: Center(
-            child: _isSmallScreen
-                ? Column(
+            child: isSmallScreen
+                ? const Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       _Logo(),
                       _FormContent(),
                     ],
@@ -25,8 +25,8 @@ class Login extends StatelessWidget {
                 : Container(
                     padding: const EdgeInsets.all(32.0),
                     constraints: const BoxConstraints(maxWidth: 800),
-                    child: Row(
-                      children: const [
+                    child: const Row(
+                      children: [
                         Expanded(child: _Logo()),
                         Expanded(
                           child: Center(child: _FormContent()),

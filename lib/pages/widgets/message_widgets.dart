@@ -106,15 +106,21 @@ phonePromptDialog(BuildContext context, String contact) {
     title: const Text('Contact Customer'),
     insetPadding: EdgeInsets.zero,
     contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-    content: const Text(
-        'Carrier charges might apply. Proceed?'),
+    content: Text(
+        'Carrier charges might apply. Call $contact?'),
     actions: <Widget>[
+      TextButton(
+        child: const Text('Cancel', style: TextStyle(color: Colors.red),),
+        onPressed: () async {
+          Navigator.pop(context);
+        },
+      ),
       TextButton(
         child: const Text('Confirm'),
         onPressed: () async {
           final Uri url = Uri.parse('tel:$contact');
           if(await canLaunchUrl(url)){
-          launchUrl(url);
+            launchUrl(url);
           }
         },
       ),

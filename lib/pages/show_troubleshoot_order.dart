@@ -67,43 +67,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   }
 
   FloatingActionButton? currentButton(String? progress) {
-    if (progress == 'troubleshooting') {
-      return FloatingActionButton.extended(
-        onPressed: () {
-          // get the position of the "attachment" section relative to the top of the screen
-          RenderBox? renderBox = _scrollTroubleshootKey.currentContext
-              ?.findRenderObject() as RenderBox?;
-          double offset = renderBox!.localToGlobal(Offset.zero).dy;
-
-          // scroll to the position of the "attachment" section
-          _scrollController.animateTo(
-            offset,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        },
-        label: const Text('Troubleshoot*'),
-        icon: const Icon(Icons.download_sharp),
-      );
-    } else if (progress == 'attachment') {
-      return FloatingActionButton.extended(
-        onPressed: () {
-          // get the position of the "attachment" section relative to the top of the screen
-          RenderBox? renderBox = _scrollTroubleshootAttachmentKey.currentContext
-              ?.findRenderObject() as RenderBox?;
-          double offset = renderBox!.localToGlobal(Offset.zero).dy;
-
-          // scroll to the position of the "attachment" section
-          _scrollController.animateTo(
-            offset,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        },
-        label: const Text('Attachments*'),
-        icon: const Icon(Icons.file_download),
-      );
-    } else if (progress == 'completion') {
+    if (progress == 'completion') {
       return FloatingActionButton.extended(
         onPressed: () async => {
           // alertMessage(context, 'Submit order completion?'),

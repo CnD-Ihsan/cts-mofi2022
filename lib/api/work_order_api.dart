@@ -9,7 +9,6 @@ import 'package:wfm/models/tt_model.dart';
 import 'package:http/http.dart' as http;
 
 class WorkOrderApi {
-  // static var wfmHost = 'http://80.80.2.254:8080/api';
   static var wfmHost = 'https://wfm.ctsabah.net/api';
 
   static Future<List<WorkOrder>> getWorkOrderList() async {
@@ -153,7 +152,7 @@ class WorkOrderApi {
       ttId: data['tt_id'],
       ttNo: data['tt_no'],
       status: data['status'],
-      isp: data['isp'],
+      isp: data['carrier'],
       description: data['description'],
       address: data['address'],
       startDate: data['appointment_date'],
@@ -233,7 +232,6 @@ class WorkOrderApi {
       },
       body: jsonEncode(jsonOnt),
     );
-    print(response.body);
 
     Map temp = {};
 
@@ -247,6 +245,7 @@ class WorkOrderApi {
       temp = {"error" : "Status code: ${response.statusCode}"};
     }
 
+    print(jsonOnt);
     return temp;
   }
 
