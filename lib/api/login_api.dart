@@ -35,8 +35,8 @@ class LoginApi{
   }
 
   static Future<LoginResponseModel> loginRequest(LoginRequestModel login) async{
-    var uri = Uri.parse('$wfmHost/login');
-    // var uri = Uri.parse('$wfmHost/auth/login');
+    var uri = Uri.parse('$wfmHost/auth/login');
+
     //Initialize shared preferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -56,17 +56,15 @@ class LoginApi{
       ).timeout(const Duration(seconds:10));
 
       Map data = jsonDecode(response.body);
-      print(response.body);
 
       if(response.statusCode == 200){
-        data['user'] = 'Admin';
         // Set shared preferences
         prefs.setString('email', login.email);
-        prefs.setString('user', data['user']);
+        prefs.setString('user', data['name']);
         prefs.setString('token', data['access_token']);
 
         return LoginResponseModel(
-          user: data['user'],
+          user: data['name'],
           token: data['access_token'],
         );
       }else{
@@ -77,11 +75,10 @@ class LoginApi{
         );
       }
     }catch(e){
-      print(e);
       return LoginResponseModel(
         user: '',
         token: '',
-        message: 'Unexpected error occurred! Contact admin if issue persists.',
+        message: e.toString(),
       );
     }
 

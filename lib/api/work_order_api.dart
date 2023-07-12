@@ -24,8 +24,6 @@ class WorkOrderApi {
         "Authorization": "Bearer $token",
       }).timeout(const Duration(seconds:10));
 
-      // Map jsonData = jsonDecode(response.body);
-
       var jsonData = jsonDecode(response.body);
       String? tempDate;
       String? tempTime;
@@ -68,7 +66,6 @@ class WorkOrderApi {
 
     Map dataSend = {
       "id": id,
-      "type": "SO",
     };
 
     final response = await http.post(
@@ -122,7 +119,6 @@ class WorkOrderApi {
 
     Map dataSend = {
       "id": id,
-      "type": "TT",
     };
 
     final response = await http.post(
@@ -147,6 +143,7 @@ class WorkOrderApi {
       tempDate = DateFormat.yMMMMd('en_US').format(dt).toString();
       tempTime = DateFormat.jm().format(dt).toString();
     }
+    print(data['status']);
 
     return TroubleshootOrder(
       ttId: data['tt_id'],
@@ -179,7 +176,7 @@ class WorkOrderApi {
   static soCompleteOrder(num soId, String? ontSn) async {
     var uri = Uri.parse('$wfmHost/work-orders/so-request-complete');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? token = prefs.getString('token');
+    String? token = prefs.getString('token');
 
     Map jsonOnt = {"so_id": soId, "ont_sn": ontSn};
 
@@ -189,7 +186,7 @@ class WorkOrderApi {
         "useQueryString": "true",
         "Content-Type": "application/json",
         "Accept": "application/json",
-        // "Authorization" : "Bearer $token",
+        "Authorization" : "Bearer $token",
       },
       body: jsonEncode(jsonOnt),
     );
@@ -212,7 +209,7 @@ class WorkOrderApi {
   static ttCompleteOrder(num ttId, String rootCause, String? subCause, String? faultLocation, String actionTaken) async {
     var uri = Uri.parse('$wfmHost/work-orders/tt-request-complete');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? token = prefs.getString('token');
+    String? token = prefs.getString('token');
 
     Map jsonOnt = {
       "tt_id": ttId,
@@ -228,7 +225,7 @@ class WorkOrderApi {
         "useQueryString": "true",
         "Content-Type": "application/json",
         "Accept": "application/json",
-        // "Authorization" : "Bearer $token",
+        "Authorization" : "Bearer $token",
       },
       body: jsonEncode(jsonOnt),
     );
@@ -249,13 +246,85 @@ class WorkOrderApi {
     return temp;
   }
 
-  static returnOrder(num woId, num soId, String? returnType, String? remarks, List<XFile?> listImage) async {
-    var uri = Uri.parse('$wfmHost/work-orders/request-return/$woId');
+  static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remarks, List<XFile?> listImage) async {
+    var uri = Uri.parse('$wfmHost/work-orders/return-order/$woId');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    Map jsonOnt = {
+      "returnType": returnType,
+      "remarks": remarks,
+    };
+
+    ftthType == 'SO'
+        ? jsonOnt['soId'] = ftthId
+        : jsonOnt['ttId'] = ftthId;
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "useQueryString": "true",
+        "Content-Type": "application/json",
+        "Authorization" : "Bearer $token",
+      },
+      body: jsonEncode(jsonOnt),
+    );
+
+    print(response.statusCode);
+
+    if(response.statusCode >= 200 && response.statusCode <= 300){
+      if(listImage.isEmpty){
+        return response;
+      }
+      try{
+        return await uploadMultiImgAttachment('return', listImage, woId);
+      }catch(e){
+        return "Error: Failed to upload attachment. Please retry later.";
+      }
+    }else{
+      return "Error: Failed to establish connection to server";
+    }
+  }
+
+  static soReturnOrder(num woId, num soId, String? returnType, String? remarks, List<XFile?> listImage) async {
+    var uri = Uri.parse('$wfmHost/work-orders/so-request-return/$woId');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
     Map jsonOnt = {
       "soId": soId,
+      "returnType": returnType,
+      "remarks": remarks
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "useQueryString": "true",
+        "Content-Type": "application/json",
+        "Authorization" : "Bearer $token",
+      },
+      body: jsonEncode(jsonOnt),
+    );
+
+    if(response.statusCode >= 200 && response.statusCode <= 300){
+      try{
+        return await uploadMultiImgAttachment('return', listImage, woId);
+      }catch(e){
+        return "Error: Failed to upload attachment. Please retry later.";
+      }
+    }else{
+      return "Error: Failed to establish connection to server";
+    }
+  }
+
+  static ttReturnOrder(num woId, num ttId, String? returnType, String? remarks, List<XFile?> listImage) async {
+    var uri = Uri.parse('$wfmHost/work-orders/tt-request-return/$woId');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    Map jsonOnt = {
+      "ttId": ttId,
       "returnType": returnType,
       "remarks": remarks
     };
@@ -304,6 +373,11 @@ class WorkOrderApi {
     var response = await request.send();
 
     if (response.statusCode >= 200 && response.statusCode <= 300) {
+      file.delete().then((_) {
+        print('File deleted successfully');
+      }).catchError((error) {
+        print('Failed to delete the file: $error');
+      });
       return getImgAttachments(id);
     } else {
       return response;
@@ -316,17 +390,21 @@ class WorkOrderApi {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    var response = await http.post(uri, headers: {
-      "Authorization": "Bearer $token",
-    },
-    body: {
-      'type' : type,
-    });
+    try{
+      var response = await http.post(uri, headers: {
+        "Authorization": "Bearer $token",
+      },
+      body: {
+        'type' : type,
+      });
 
-    if (response.statusCode >= 200 && response.statusCode <= 300) {
-      return getImgAttachments(id);
-    } else {
-      return response;
+      if (response.statusCode >= 200 && response.statusCode <= 300) {
+        return getImgAttachments(id);
+      } else {
+        return response;
+      }
+    }catch(e){
+      print(e);
     }
   }
 
@@ -399,12 +477,13 @@ class WorkOrderApi {
         // "useQueryString": "true",
         "Accept": "application/json",
         "Content-Type": "application/json",
-        // "Authorization": "Bearer $token",
+        "Authorization": "Bearer $token",
       },
       body: jsonEncode(jsonOnt),
     );
 
     Map temp = json.decode(response.body);
+    print(temp);
     return temp;
   }
 }

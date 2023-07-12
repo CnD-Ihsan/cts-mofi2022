@@ -39,13 +39,15 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
 
   void refresh(Map img, String action) async {
       await getAsync(widget.orderID, false);
-      if(mounted){}
-      if(action == 'delete'){
-        snackbarMessage(context, 'Image attachment deleted.');
-        Navigator.pop(context);
-      }
-      else{
-        snackbarMessage(context, 'Image uploaded');
+      if(mounted){
+        if(action == 'delete'){
+          snackbarMessage(context, 'Image attachment deleted.');
+          Navigator.pop(context);
+        }
+        else{
+          snackbarMessage(context, 'Image uploaded');
+          Navigator.pop(context);
+        }
       }
       listImage = img;
 
@@ -91,14 +93,13 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
     }else if(progress == 'completion'){
       return FloatingActionButton.extended(
         onPressed: () async => {
-          // alertMessage(context, 'Submit order completion?'),
           requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn),
           if(!requestVerification.containsKey('error')){
-            snackbarMessage(context, 'Verification request submitted!'),
-            setState(() {})
+            _pullRefresh(),
+            snackbarMessage(context, 'Verification request submitted!')
           }else{
             colorSnackbarMessage(context, 'Request error! ${requestVerification['error']}', Colors.red)
-          }
+          },
         },
         label: const Text('Complete Order'),
         icon: const Icon(Icons.check_circle),
@@ -125,6 +126,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
     try {
       prefs = await SharedPreferences.getInstance();
       so = await WorkOrderApi.getServiceOrder(id);
+      print(so.progress);
       listImage = so.img;
     } catch (e) {
       print(e);
@@ -151,6 +153,8 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
   @override
   Widget build(BuildContext context) {
 
+    const MaterialColor themeColor = Colors.indigo;
+
     return Scaffold(
       appBar: AppBar(
         title: Text("New Installation Order"),
@@ -174,16 +178,18 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       value: 0,
                       onTap: () async {
                         await Future.delayed(const Duration(milliseconds: 10));
-                        if(mounted){}
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ReturnOrder(
-                                woId: widget.orderID,
-                                soId: so.soId,
-                                refresh: refresh,
-                              )),
-                        );
+                        if(mounted){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ReturnOrder(
+                                  woId: widget.orderID,
+                                  ftthId: so.soId,
+                                  type: "SO",
+                                  refresh: refresh,
+                                )),
+                          );
+                        }
                       },
                       child: const Text("Return Order", style: TextStyle(color: Colors.red),),
                     ),
@@ -212,42 +218,42 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                     children: [
                       const Text(
                         'Activation',
-                        style: TextStyle(fontSize: 12, color: Colors.blue),
+                        style: TextStyle(fontSize: 12, color: themeColor),
                         textAlign: TextAlign.start,
                       ),
                       so.progress == 'activation' ?
-                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
-                      const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: themeColor,) :
+                      const FaIcon(FontAwesomeIcons.solidCircleCheck, color: themeColor,)
                     ],
                   ),
-                  Icon(Icons.chevron_right, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
+                  Icon(Icons.chevron_right, color: so.progress == 'activation' ? Colors.black : themeColor,),
                   Column(
                     children: [
                       Text(
                         'Attachment',
-                        style: TextStyle(fontSize: 12, color: so.progress == 'activation' ? Colors.black : Colors.blue,),
+                        style: TextStyle(fontSize: 12, color: so.progress == 'activation' ? Colors.black : themeColor,),
                         textAlign: TextAlign.start,
                       ),
                       so.progress == 'attachment' ?
-                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                      const FaIcon(FontAwesomeIcons.circleHalfStroke, color: themeColor,) :
                           so.progress == 'activation' ?
                           const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
-                          const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                          const FaIcon(FontAwesomeIcons.solidCircleCheck, color: themeColor,)
                     ],
                   ),
-                  Icon(Icons.chevron_right, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
+                  Icon(Icons.chevron_right, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : themeColor,),
                   Column(
                     children: [
                       Text(
                         'Completion',
-                        style: TextStyle(fontSize: 12, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : Colors.blue,),
+                        style: TextStyle(fontSize: 12, color: so.progress == 'activation' || so.progress == 'attachment' ? Colors.black : themeColor,),
                         textAlign: TextAlign.start,
                       ),
                       so.progress == 'completion' || so.progress == 'close_requested' ?
-                        const FaIcon(FontAwesomeIcons.circleHalfStroke, color: Colors.blue,) :
+                        const FaIcon(FontAwesomeIcons.circleHalfStroke, color: themeColor) :
                         so.progress == 'activation' || so.progress == 'attachment' ?
                         const FaIcon(FontAwesomeIcons.circle, color: Colors.black,) :
-                        const FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.blue,)
+                        const FaIcon(FontAwesomeIcons.solidCircleCheck, color: themeColor,)
                     ],
                   ),
                 ],
@@ -382,7 +388,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                                 //   launchUrl(url);
                                 // }
                               },
-                              child: const Icon(Icons.phone, color: Colors.blue,),
+                              child: const Icon(Icons.phone, color: themeColor,),
                             ),
                           ],)
                     ),
@@ -421,7 +427,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                   ],
                 ),
               ),
-              so.progress == 'activation' ? const Divider() : newInstallationAttachments(context, widget.orderID, listImage, refresh),
+              so.progress == 'activation' ? const Divider() : newInstallationAttachments(context, widget.orderID, so.progress ?? 'close_requested', listImage, refresh),
               // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
               // FutureBuilder(
               //     future: WorkOrderApi.getImgAttachments(wo.woId),

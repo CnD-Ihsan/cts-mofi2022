@@ -36,12 +36,12 @@ class _SubmitONTState extends State<SubmitONT> {
   Widget build(BuildContext context) {
     return Padding(
       padding: MediaQuery.of(context).viewInsets,
-      child: Container(
-        height: 180,
+      child: SizedBox(
+        height: 186,
         child: Column(
           children: [
             const SizedBox(
-              height: 20,
+              height: 10,
             ),
             ListTile(
               title: TextField(
@@ -50,7 +50,7 @@ class _SubmitONTState extends State<SubmitONT> {
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.camera_alt_outlined),
                     iconSize: 20,
-                    color: Colors.brown,
+                    color: Colors.indigo,
                     tooltip: 'Scan serial number barcode',
                     onPressed: () {
                       getScanRes();
@@ -61,10 +61,10 @@ class _SubmitONTState extends State<SubmitONT> {
                 ),
                 controller: txt,
               ),
-              subtitle: const Text("* When using the camera to scan, cover other barcodes to ensure accuracy."),
-            ),
-            const SizedBox(
-              height: 10,
+              subtitle: const Padding(
+                padding: EdgeInsets.fromLTRB(2, 10, 2, 10),
+                child: Text("Note: When using the camera to scan, cover other barcodes to ensure accuracy."),
+              ),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -76,8 +76,9 @@ class _SubmitONTState extends State<SubmitONT> {
                 }
                 showLoaderDialog(context);
                 response = await WorkOrderApi.activateOnt(woId, txt.text);
+
                 if (mounted) {
-                  if (response.containsKey('data')) {
+                  if (response.containsKey('success')) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         // behavior: SnackBarBehavior.floating,
@@ -91,7 +92,7 @@ class _SubmitONTState extends State<SubmitONT> {
                           ],
                         ),
                         backgroundColor: Colors.green,
-                        duration: Duration(milliseconds: 3000),
+                        duration: Duration(milliseconds: 6000),
                       ),
                     );
                   } else {
@@ -101,7 +102,7 @@ class _SubmitONTState extends State<SubmitONT> {
                           children: [
                             Expanded(
                                 child:
-                                Text('Error: ${response['errorMessage']}')),
+                                Text('Error: ${response['error']}')),
                             const Icon(
                               Icons.error_outline,
                               color: Colors.white,
@@ -109,20 +110,22 @@ class _SubmitONTState extends State<SubmitONT> {
                           ],
                         ),
                         backgroundColor: Colors.red,
-                        duration: const Duration(milliseconds: 3000),
+                        duration: const Duration(milliseconds: 7000),
                       ),
                     );
                   }
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => ShowServiceOrder(orderID: woId),
-                    ),
-                        (route) => route.isFirst,
-                    // ModalRoute.of(context, ),
-                  );
+                  await Future.delayed(const Duration(seconds: 5));
+                  if(mounted){
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => ShowServiceOrder(orderID: woId),
+                      ),
+                          (route) => route.isFirst,
+                      // ModalRoute.of(context, ),
+                    );
+                  }
                 }
-
               },
               child: const Text('Submit'),
             ),
@@ -143,14 +146,12 @@ class _SubmitONTState extends State<SubmitONT> {
   }
 
   showLoaderDialog(BuildContext context) {
-    AlertDialog alert = AlertDialog(
-      content: Row(
-        children: [
-          const CircularProgressIndicator(),
-          Container(
-              margin: const EdgeInsets.only(left: 7),
-              child: const Text("Submitting...")),
-        ],
+    AlertDialog alert = const AlertDialog(
+      contentPadding: EdgeInsets.all(8),
+      content: ListTile(
+        leading: CircularProgressIndicator(),
+        title: Text("Activating ONT..."),
+        subtitle: Text("This might take a while"),
       ),
     );
     showDialog(

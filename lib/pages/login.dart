@@ -1,4 +1,4 @@
-import 'dart:math';
+
 
 import 'package:flutter/material.dart';
 import 'package:wfm/models/login_model.dart';
@@ -54,19 +54,6 @@ class _Logo extends StatelessWidget {
         ),
         //FlutterLogo(size: _isSmallScreen ? 100 : 200),
         if (_isSmallScreen) SizedBox(height: size.height * 0.06),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            "Login WFM",
-            textAlign: TextAlign.center,
-            style: _isSmallScreen
-                ? Theme.of(context).textTheme.headline5
-                : Theme.of(context)
-                    .textTheme
-                    .headline4
-                    ?.copyWith(color: Colors.black),
-          ),
-        )
       ],
     );
   }
@@ -107,6 +94,10 @@ class __FormContentState extends State<_FormContent> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text("Welcome back! Login to your account", style: TextStyle(fontSize: 14,),),
+            ),
             TextFormField(
               controller: emController,
               onSaved: (input) => emController.text = input ?? "Empty email",
@@ -125,11 +116,15 @@ class __FormContentState extends State<_FormContent> {
 
                 return null;
               },
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                fillColor: Colors.grey.shade200,
+                filled: true,
                 labelText: 'Email',
                 hintText: 'Enter your email',
-                prefixIcon: Icon(Icons.email_outlined),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: const OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.all(Radius.circular(15))),
               ),
             ),
             _gap(),
@@ -148,10 +143,14 @@ class __FormContentState extends State<_FormContent> {
               },
               obscureText: !_isPasswordVisible,
               decoration: InputDecoration(
+                  fillColor: Colors.grey.shade200,
+                  filled: true,
                   labelText: 'Password',
                   hintText: 'Enter your password',
                   prefixIcon: const Icon(Icons.lock_outline_rounded),
-                  border: const OutlineInputBorder(),
+                  border: const OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.all(Radius.circular(15))),
                   suffixIcon: IconButton(
                     icon: Icon(_isPasswordVisible
                         ? Icons.visibility_off

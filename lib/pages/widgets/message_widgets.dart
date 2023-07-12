@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
 import 'package:wfm/api/work_order_api.dart';
@@ -107,22 +108,29 @@ phonePromptDialog(BuildContext context, String contact) {
     insetPadding: EdgeInsets.zero,
     contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
     content: Text(
-        'Carrier charges might apply. Call $contact?'),
+        'Carrier charges might apply. Proceed?'),
     actions: <Widget>[
-      TextButton(
-        child: const Text('Cancel', style: TextStyle(color: Colors.red),),
-        onPressed: () async {
-          Navigator.pop(context);
-        },
-      ),
-      TextButton(
-        child: const Text('Confirm'),
-        onPressed: () async {
-          final Uri url = Uri.parse('tel:$contact');
-          if(await canLaunchUrl(url)){
-            launchUrl(url);
-          }
-        },
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Container(
+            child: TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red),),
+              onPressed: () async {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+          TextButton(
+            child: const Text('Confirm'),
+            onPressed: () async {
+              final Uri url = Uri.parse('tel:$contact');
+              if(await canLaunchUrl(url)){
+                launchUrl(url);
+              }
+            },
+          ),
+        ],
       ),
     ],
   );
@@ -137,7 +145,7 @@ phonePromptDialog(BuildContext context, String contact) {
 
 whatsappPromptDialog(BuildContext context, String contact) {
   AlertDialog alert = AlertDialog(
-    title: const Text('WhatsApp Customer'),
+    title: const Center(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 48,)),
     // contentPadding: EdgeInsets.fromLTRB(24, 12, 0, 0),
     insetPadding: EdgeInsets.zero,
     contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -146,16 +154,28 @@ whatsappPromptDialog(BuildContext context, String contact) {
         'Opening external application. Proceed?'
     ),
     actions: <Widget>[
-      TextButton(
-        child: const Text('Confirm'),
-        onPressed: () async {
-          Navigator.pop(context);
-          final Uri url = Uri.parse('https://wa.me/$contact');
-          if(await canLaunchUrl(url)){
-            launchUrl(url, mode: LaunchMode.externalApplication);
-          }
-        },
-      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+        TextButton(
+          child: const Text('Cancel', style: TextStyle(color: Colors.red),),
+          onPressed: () async {
+            Navigator.pop(context);
+          },
+        ),
+        TextButton(
+          child: const Text('Confirm'),
+          onPressed: () async {
+            Navigator.pop(context);
+            final Uri url = Uri.parse('https://wa.me/$contact');
+            if(await canLaunchUrl(url)){
+              launchUrl(url, mode: LaunchMode.externalApplication);
+            }
+          },
+        ),
+      ],)
+
+
     ],
   );
   showDialog(
@@ -223,6 +243,7 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
                 .pickImage(source: ImageSource.camera, imageQuality: 25);
             if (image!.path.isNotEmpty) {
               try{
+                loadingScreen(context);
                 refresh(await WorkOrderApi.uploadImgAttachment(type, image, woId), 'upload');
               }catch(e){
                 print(e);
@@ -251,6 +272,7 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
                 await ImagePicker().pickMultiImage(imageQuality: 25);
             if (image.isNotEmpty) {
               try{
+                loadingScreen(context);
                 refresh(await WorkOrderApi.uploadMultiImgAttachment(type, image, woId), 'upload');
               }catch(e){
                 print(e);

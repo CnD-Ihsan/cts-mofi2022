@@ -1,9 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.ctsabah.wfm">
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
    <application
-        android:label="wfm"
+        android:label="Mo-Fi"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

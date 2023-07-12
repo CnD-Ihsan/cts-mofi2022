@@ -154,11 +154,13 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     setState(() {});
   }
 
+  MaterialColor themeColor = Colors.indigo;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Troubleshoot Order"),
+        title: const Text("Troubleshoot Order"),
         actions: tt.status != 'Pending' || tt.progress == 'close_requested'
             ? null
             : [
@@ -166,7 +168,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                   return PopupMenuButton(
                     icon: const Icon(Icons.menu),
                     position: PopupMenuPosition.under,
-                    // color: Colors.blue,
+                    // color: themeColor,
                     tooltip: "Order Actions",
                     constraints: const BoxConstraints(),
                     // onSelected: (newValue) { // add this property
@@ -181,16 +183,19 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         onTap: () async {
                           await Future.delayed(
                               const Duration(milliseconds: 10));
-                          if (mounted) {}
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ReturnOrder(
-                                      woId: widget.orderID,
-                                      soId: tt.ttId,
-                                      refresh: refresh,
-                                    )),
-                          );
+                          if (mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ReturnOrder(
+                                        woId: widget.orderID,
+                                        ftthId: tt.ttId,
+                                        type: "TT",
+                                        refresh: refresh,
+                                      )),
+                            );
+                          }
                         },
                         child: const Text(
                           "Return Order",
@@ -203,303 +208,307 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
               ],
       ),
       floatingActionButton: currentButton(tt.progress),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(
-              height: 20,
-            ),
-            tt.status != 'Returned' || tt.status != 'Cancelled'
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        children: [
-                          const Text(
-                            'Troubleshooting',
-                            style: TextStyle(fontSize: 12, color: Colors.blue),
-                            textAlign: TextAlign.start,
-                          ),
-                          tt.progress == 'troubleshooting'
-                              ? const FaIcon(
-                                  FontAwesomeIcons.circleHalfStroke,
-                                  color: Colors.blue,
-                                )
-                              : const FaIcon(
-                                  FontAwesomeIcons.solidCircleCheck,
-                                  color: Colors.blue,
-                                )
-                        ],
-                      ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: tt.progress == 'troubleshooting'
-                            ? Colors.black
-                            : Colors.blue,
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            'Attachment',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: tt.progress == 'troubleshooting'
-                                  ? Colors.black
-                                  : Colors.blue,
-                            ),
-                            textAlign: TextAlign.start,
-                          ),
-                          tt.progress == 'attachment'
-                              ? const FaIcon(
-                                  FontAwesomeIcons.circleHalfStroke,
-                                  color: Colors.blue,
-                                )
-                              : tt.progress == 'troubleshooting'
-                                  ? const FaIcon(
-                                      FontAwesomeIcons.circle,
-                                      color: Colors.black,
-                                    )
-                                  : const FaIcon(
-                                      FontAwesomeIcons.solidCircleCheck,
-                                      color: Colors.blue,
-                                    )
-                        ],
-                      ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: tt.progress == 'troubleshooting' ||
-                                tt.progress == 'attachment'
-                            ? Colors.black
-                            : Colors.blue,
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            'Completion',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: tt.progress == 'troubleshooting' ||
-                                      tt.progress == 'attachment'
-                                  ? Colors.black
-                                  : Colors.blue,
-                            ),
-                            textAlign: TextAlign.start,
-                          ),
-                          tt.progress == 'completion' ||
-                                  tt.progress == 'close_requested'
-                              ? const FaIcon(
-                                  FontAwesomeIcons.circleHalfStroke,
-                                  color: Colors.blue,
-                                )
-                              : tt.progress == 'troubleshooting' ||
-                                      tt.progress == 'attachment'
-                                  ? const FaIcon(
-                                      FontAwesomeIcons.circle,
-                                      color: Colors.black,
-                                    )
-                                  : const FaIcon(
-                                      FontAwesomeIcons.solidCircleCheck,
-                                      color: Colors.blue,
-                                    )
-                        ],
-                      ),
-                    ],
-                  )
-                : const Divider(),
-            const ListTile(
-              title: Text(
-                'Order Details',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.start,
+      body: RefreshIndicator(
+        onRefresh: _pullRefresh,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const SizedBox(
+                height: 20,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.tag),
-                    title: Text(
-                      tt.ttNo,
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.question_mark),
-                    title: Text(
-                      tt.status +
-                          (tt.progress == 'close_requested'
-                              ? ' (Close Requested)'
-                              : ''),
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.calendar_month),
-                    title: Text(
-                      tt.date ?? 'N/A',
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.access_time),
-                    title: Text(
-                      tt.time ?? 'N/A',
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () async {
-                      tt.lat != 0
-                          ? MapUtils.openMap(tt.lat, tt.lng)
-                          : (tt.address == ''
-                              ? alertMessage(context, 'Empty address')
-                              : mapPromptDialog(context, tt.address));
-                    },
-                    child: ListTile(
-                      leading: const Icon(Icons.home),
+              tt.status != 'Returned' || tt.status != 'Cancelled'
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              'Troubleshooting',
+                              style: TextStyle(fontSize: 12, color: themeColor),
+                              textAlign: TextAlign.start,
+                            ),
+                            tt.progress == 'troubleshooting'
+                                ? FaIcon(
+                                    FontAwesomeIcons.circleHalfStroke,
+                                    color: themeColor,
+                                  )
+                                : FaIcon(
+                                    FontAwesomeIcons.solidCircleCheck,
+                                    color: themeColor,
+                                  )
+                          ],
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: tt.progress == 'troubleshooting'
+                              ? Colors.black
+                              : themeColor,
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              'Attachment',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: tt.progress == 'troubleshooting'
+                                    ? Colors.black
+                                    : themeColor,
+                              ),
+                              textAlign: TextAlign.start,
+                            ),
+                            tt.progress == 'attachment'
+                                ? FaIcon(
+                                    FontAwesomeIcons.circleHalfStroke,
+                                    color: themeColor,
+                                  )
+                                : tt.progress == 'troubleshooting'
+                                    ? const FaIcon(
+                                        FontAwesomeIcons.circle,
+                                        color: Colors.black,
+                                      )
+                                    : FaIcon(
+                                        FontAwesomeIcons.solidCircleCheck,
+                                        color: themeColor,
+                                      )
+                          ],
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: tt.progress == 'troubleshooting' ||
+                                  tt.progress == 'attachment'
+                              ? Colors.black
+                              : themeColor,
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              'Completion',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: tt.progress == 'troubleshooting' ||
+                                        tt.progress == 'attachment'
+                                    ? Colors.black
+                                    : themeColor,
+                              ),
+                              textAlign: TextAlign.start,
+                            ),
+                            tt.progress == 'completion' ||
+                                    tt.progress == 'close_requested'
+                                ? FaIcon(
+                                    FontAwesomeIcons.circleHalfStroke,
+                                    color: themeColor,
+                                  )
+                                : tt.progress == 'troubleshooting' ||
+                                        tt.progress == 'attachment'
+                                    ? const FaIcon(
+                                        FontAwesomeIcons.circle,
+                                        color: Colors.black,
+                                      )
+                                    : FaIcon(
+                                        FontAwesomeIcons.solidCircleCheck,
+                                        color: themeColor,
+                                      )
+                          ],
+                        ),
+                      ],
+                    )
+                  : const Divider(),
+              const ListTile(
+                title: Text(
+                  'Order Details',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.tag),
                       title: Text(
-                        tt.address,
+                        tt.ttNo,
                         style: textFieldStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.info),
-                    title: Text(
-                      tt.description,
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.justify,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
-              ),
-            ),
-            const ListTile(
-              title: Text(
-                'Customer Details',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.start,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.broadcast_on_personal_outlined),
-                    title: Text(
-                      tt.isp,
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.signal_cellular_alt),
-                    title: Text(
-                      tt.speed,
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Text(
-                      'ONT',
-                      style: TextStyle(fontSize: 14),
-                      textAlign: TextAlign.start,
-                    ),
-                    title: Text(
-                      tt.progress != 'activation'
-                          ? tt.ontSn.toString()
-                          : 'Not Activated',
-                      style: textFieldStyle(),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  SizedBox(
-                    key: _scrollTroubleshootKey,
-                  ),
-                  ListTile(
-                      leading: const Icon(Icons.person),
+                    ListTile(
+                      leading: const Icon(Icons.question_mark),
                       title: Text(
-                        tt.custName,
+                        tt.status +
+                            (tt.progress == 'close_requested'
+                                ? ' (Close Requested)'
+                                : ''),
                         style: textFieldStyle(),
                         textAlign: TextAlign.start,
                       ),
-                      trailing: Wrap(
-                        spacing: 12,
-                        children: [
-                          InkWell(
-                            onTap: () async {
-                              phonePromptDialog(context, tt.custContact);
-                            },
-                            child: const Icon(
-                              Icons.phone,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              whatsappPromptDialog(context, tt.custContact);
-                            },
-                            child: const FaIcon(
-                              FontAwesomeIcons.whatsapp,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      )),
-                ],
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.calendar_month),
+                      title: Text(
+                        tt.date ?? 'N/A',
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.access_time),
+                      title: Text(
+                        tt.time ?? 'N/A',
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        tt.lat != 0
+                            ? MapUtils.openMap(tt.lat, tt.lng)
+                            : (tt.address == ''
+                                ? alertMessage(context, 'Empty address')
+                                : mapPromptDialog(context, tt.address));
+                      },
+                      child: ListTile(
+                        leading: const Icon(Icons.home),
+                        title: Text(
+                          tt.address,
+                          style: textFieldStyle(),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.info),
+                      title: Text(
+                        tt.description,
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.justify,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const ListTile(
-              title: Text(
-                'Troubleshooting Details',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.start,
+              const ListTile(
+                title: Text(
+                  'Customer Details',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.start,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: tt.progress == 'close_requested'
-                    ? [
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.broadcast_on_personal_outlined),
+                      title: Text(
+                        tt.isp,
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.signal_cellular_alt),
+                      title: Text(
+                        '${tt.speed} Mbps',
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Text(
+                        'ONT',
+                        style: TextStyle(fontSize: 14),
+                        textAlign: TextAlign.start,
+                      ),
+                      title: Text(
+                        tt.progress != 'activation'
+                            ? tt.ontSn.toString()
+                            : 'Not Activated',
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    SizedBox(
+                      key: _scrollTroubleshootKey,
+                    ),
+                    ListTile(
+                        leading: const Icon(Icons.person),
+                        title: Text(
+                          tt.custName,
+                          style: textFieldStyle(),
+                          textAlign: TextAlign.start,
+                        ),
+                        trailing: Wrap(
+                          spacing: 12,
+                          children: [
+                            InkWell(
+                              onTap: () async {
+                                phonePromptDialog(context, tt.custContact);
+                              },
+                              child: const Icon(
+                                Icons.phone,
+                                color: Colors.indigo,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () async {
+                                whatsappPromptDialog(context, tt.custContact);
+                              },
+                              child: const FaIcon(
+                                FontAwesomeIcons.whatsapp,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        )),
+                  ],
+                ),
+              ),
+              tt.status != 'Returned' && tt.status != 'Cancelled' ? Column(
+                children: [
+                  const ListTile(
+                    title: Text(
+                      'Troubleshooting Details',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: tt.progress == 'close_requested' || tt.progress == null || tt.status == 'Completed'
+                          ? [
                         ListTile(
                           title: const Text("Root Cause"),
                           subtitle: Text(tt.rootCause ?? "-"),
                           style: ListTileStyle.list,
                         ),
                         ListTile(
-                          title: const Text("Sub Cause"),
-                          subtitle: Text(tt.subCause ?? "-")
+                            title: const Text("Sub Cause"),
+                            subtitle: Text(tt.subCause ?? "-")
                         ),
                         ListTile(
-                          title: const Text("Fault Location"),
-                          subtitle: Text(tt.faultLocation ?? "-")
+                            title: const Text("Fault Location"),
+                            subtitle: Text(tt.faultLocation ?? "-")
                         ),
                         ListTile(
-                          title: const Text("Action Taken"),
-                          subtitle: Text(tt.actionTaken ?? "-")
+                            title: const Text("Action Taken"),
+                            subtitle: Text(tt.actionTaken ?? "-")
                         ),
                         SizedBox(
                           key: _scrollTroubleshootAttachmentKey,
                           height: 20,
                         ),
                       ]
-                    : [
+                          : [
                         ListTile(
                           title: const Text("Root Cause *"),
                           subtitle: TextField(
@@ -548,14 +557,25 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                           height: 20,
                         ),
                       ],
-              ),
-            ),
-            troubleshootOrderAttachments(
-                context, widget.orderID, listImage, tt.progress ?? "close_requested" ,refresh),
-          ],
+                    ),
+                  ),
+
+                ],
+              ): const SizedBox(height: 0,),
+              troubleshootOrderAttachments(
+                  context, widget.orderID, listImage, tt.progress ?? "close_requested" ,refresh),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _pullRefresh() async {
+    TroubleshootOrder _tt = await WorkOrderApi.getTroubleshootOrder(widget.orderID);
+    setState(() {
+      tt = _tt;
+    });
   }
 
   textFieldStyle() {

@@ -1,5 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class AttachmentUtils {
   AttachmentUtils._();
@@ -60,7 +61,7 @@ class SpeedTestUtils {
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
-      throw 'Could get Speed Test.';
+      throw 'Could not open Speed Test.';
     }
   }
 }

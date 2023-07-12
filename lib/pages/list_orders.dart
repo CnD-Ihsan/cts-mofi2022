@@ -22,8 +22,8 @@ class WorkOrders extends StatefulWidget {
 class _WorkOrdersState extends State<WorkOrders> {
   var ctime, user, email;
   final ValueNotifier<Map<String, String?>> filterNotifier = ValueNotifier({
-    'type': 'New Installation',
-    'status': 'Pending',
+    'type': 'All Orders',
+    'status': 'All Status',
   });
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   late SharedPreferences prefs;
@@ -38,16 +38,10 @@ class _WorkOrdersState extends State<WorkOrders> {
     return ListTile(
       leading: icon,
       title: Text(value),
-      selectedColor: Colors.blue,
+      selectedColor: Colors.indigo,
       selected: filterNotifier.value[type] == value ? true : false,
       onTap: () async {
         filterNotifier.value[type] = value;
-        if(value == 'All Status'){
-          filterNotifier.value[type] = null;
-        }
-        if(value == 'All Orders'){
-          filterNotifier.value[type] = null;
-        }
         Navigator.pop(context);
         setState(() {});
       },
@@ -55,8 +49,6 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   getPrefs() async {
-    // user = widget.user;
-    // email = widget.email;
     prefs = await SharedPreferences.getInstance();
     user = prefs.getString('user') ?? 'Unauthorized';
     email = prefs.getString('email') ?? 'Unauthorized';
@@ -64,13 +56,12 @@ class _WorkOrdersState extends State<WorkOrders> {
 
   List<WorkOrder> list = [];
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: InkWell(
-            child: Text('${filterNotifier.value['type'] ?? filterNotifier.value['status'] ?? 'All'} Orders'),
+            child: Text('${filterNotifier.value['type']}'),
           onTap: (){},
         ),
         actions: [
@@ -85,20 +76,20 @@ class _WorkOrdersState extends State<WorkOrders> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => {
-          showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            builder: (BuildContext context) {
-              // Returning SizedBox instead of a Container
-              return Divider();
-            },
-          ),
-        },
-        label: const Text('Filter'),
-        icon: const Icon(Icons.filter_list_sharp),
-      ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () => {
+      //     showModalBottomSheet<void>(
+      //       context: context,
+      //       isScrollControlled: true,
+      //       builder: (BuildContext context) {
+      //         // Returning SizedBox instead of a Container
+      //         return Divider();
+      //       },
+      //     ),
+      //   },
+      //   label: const Text('Filter'),
+      //   icon: const Icon(Icons.filter_list_sharp),
+      // ),
       endDrawer: Drawer(
         child: Container(
           color: Colors.white,
@@ -137,23 +128,13 @@ class _WorkOrdersState extends State<WorkOrders> {
             padding: EdgeInsets.zero,
             children: [
               UserAccountsDrawerHeader(
-                accountName: Text(user),
-                accountEmail: Text(email),
-                currentAccountPicture: CircleAvatar(
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/img/avatar_default.png',
-                      fit: BoxFit.cover,
-                      width: 90,
-                      height: 90,
-                    ),
-                  ),
-                ),
+                accountName: Text(user ?? "Missing Value"),
+                accountEmail: Text(email ?? "Missing Value"),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: Colors.teal,
                   image: DecorationImage(
                     fit: BoxFit.fill,
-                    image: AssetImage('assets/img/bg-prof.jpg'),
+                    image: AssetImage('assets/img/bg4.jpg'),
                   ),
                 ),
               ),
@@ -162,20 +143,13 @@ class _WorkOrdersState extends State<WorkOrders> {
               setFilter('Troubleshoot', 'type',  const Icon(Icons.settings)),
               setFilter('All Orders', 'type',  const Icon(Icons.select_all)),
               const Divider(),
-              ListTile(
-                title: const Text('Notifications'),
-                leading: const Icon(Icons.notifications),
-                onTap: () async {
-                  SpeedTestUtils.runSpeedTest();
-                },
-              ),
-              ListTile(
-                title: const Text('Speed Test'),
-                leading: const Icon(Icons.speed),
-                onTap: () async {
-                  SpeedTestUtils.runSpeedTest();
-                },
-              ),
+              // ListTile(
+              //   title: const Text('Speed Test'),
+              //   leading: const Icon(Icons.speed),
+              //   onTap: () async {
+              //     SpeedTestUtils.runSpeedTest();
+              //   },
+              // ),
               ListTile(
                 title: const Text('Log Out'),
                 leading: const Icon(Icons.exit_to_app),
@@ -212,7 +186,8 @@ class _WorkOrdersState extends State<WorkOrders> {
             ctime = now;
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                 content: Text(
-                    'Press Back Button Again to Exit'))); //scaffold message, you can show Toast message too.
+                    'Press Back Button Again to Exit'),
+            backgroundColor: Colors.indigoAccent,)); //scaffold message, you can show Toast message too.
             return Future.value(false);
           }
           SystemNavigator.pop();
@@ -222,22 +197,25 @@ class _WorkOrdersState extends State<WorkOrders> {
             child: FutureBuilder<List<WorkOrder>>(
                 future: WorkOrderApi.getWorkOrderList(),
                 builder: (context, snapshot) {
-                  if (snapshot.hasData) {
+                  if(snapshot.connectionState == ConnectionState.waiting){
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }else if (snapshot.hasData) {
                     list = snapshot.data!;
 
-                    if (filterNotifier.value['status'] != null) {
+                    if (filterNotifier.value['status'] != 'All Status') {
                       list = list
                           .where((workOrder) =>
                               workOrder.status == filterNotifier.value['status'])
                           .toList();
                     }
-                    if (filterNotifier.value['type'] != null) {
+                    if (filterNotifier.value['type'] != 'All Orders') {
                       list = list
                           .where((workOrder) =>
                       workOrder.type == filterNotifier.value['type'])
                           .toList();
                     }
-
                     return RefreshIndicator(
                       onRefresh: _pullRefresh,
                       child: ListView.builder(
@@ -272,7 +250,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                 ),
                                 title: wo.woName,
                                 subtitle: wo.address,
-                                group: '${wo.type} (${wo.status})' ?? 'Undefined',
+                                group: '${wo.type} (${wo.status})',
                                 date: wo.date ?? 'Unassigned',
                                 time: wo.time ?? 'Unassigned',
                               ),
@@ -298,7 +276,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                 ),
                                 title: wo.woName,
                                 subtitle: wo.address,
-                                group: wo.type ?? 'Undefined',
+                                group: '${wo.type} (${wo.status})',
                                 date: wo.date ?? 'Unassigned',
                                 time: wo.time ?? 'Unassigned',
                               ),
@@ -309,12 +287,13 @@ class _WorkOrdersState extends State<WorkOrders> {
                     );
                   } else if(snapshot.hasError){
                     return const Center(
-                      child: Text('Empty order'),
+                      child: Text('Error loading order', style: TextStyle(color: Colors.red)),
+                    );
+                  } else{
+                    return const Center(
+                      child: Text("Empty order"),
                     );
                   }
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
                 })),
       ),
     );

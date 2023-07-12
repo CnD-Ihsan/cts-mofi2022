@@ -1,20 +1,20 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:wfm/api/work_order_api.dart';
+import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/pages/show_new_installation.dart';
-import 'package:wfm/pages/widgets/attachment_widget.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class ReturnOrder extends StatefulWidget {
   final num woId;
-  final num soId;
+  final num ftthId;
+  final String type;
   final Function(Map, String) refresh;
+
   const ReturnOrder(
-      {Key? key, required this.woId, required this.soId, required this.refresh})
+      {Key? key, required this.woId, required this.ftthId, required this.type, required this.refresh})
       : super(key: key);
 
   @override
@@ -25,6 +25,13 @@ class _ReturnOrderState extends State<ReturnOrder> {
   String returnType = 'Customer Unavailable';
   String remarks = '';
   List<XFile?> listImage = [];
+  List<String> listReturnTypes = [
+    'Customer Unavailable',
+    'Wrong Address',
+    'Activation Failure',
+    'Technical Issues',
+    'Other'
+  ];
   var response;
 
   int _index = 0;
@@ -37,13 +44,25 @@ class _ReturnOrderState extends State<ReturnOrder> {
   void dispose() {
     // Clean up the controller when the widget is disposed.
     remarkController.dispose();
+
+    for (var file in listImage) {
+      File(file!.path).delete().then((_) {
+        print('File deleted successfully: ${file.path}');
+      }).catchError((error) {
+        print('Failed to delete the file: ${file.path}, Error: $error');
+      });
+    }
+
     super.dispose();
   }
 
   @override
   void initState() {
-    super.initState();
+    if(widget.type == "TT"){
+      listReturnTypes.remove('Activation Failure');
+    }
     _pageController = PageController(initialPage: _index);
+    super.initState();
   }
 
   Widget build(BuildContext context) {
@@ -58,7 +77,6 @@ class _ReturnOrderState extends State<ReturnOrder> {
           child: Form(
             key: _returnFormKey,
             child: Column(
-              // mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 16),
@@ -72,36 +90,16 @@ class _ReturnOrderState extends State<ReturnOrder> {
                       returnType = value!;
                     });
                   },
-                  items: const [
-                    DropdownMenuItem(
-                        value: 'Customer Unavailable',
-                        child: Text('Customer Unavailable')),
-                    DropdownMenuItem(
-                        value: 'Wrong Address', child: Text('Wrong Address')),
-                    DropdownMenuItem(
-                        value: 'Activation Failure',
-                        child: Text('Activation Failure')),
-                    DropdownMenuItem(
-                        value: 'Technical Issues',
-                        child: Text('Technical Issues')),
-                    DropdownMenuItem(value: 'Others', child: Text('Others')),
-                  ],
+                  items: listReturnTypes.map((String item) {
+                    return DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item),
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 32),
-                const Text('Remarks'),
+                const Text('Remarks *'),
                 const SizedBox(height: 8),
-                // TextField(
-                //   key: const Key('remarksTextField'),
-                //   onChanged: (value) {
-                //     setState(() {
-                //       remarks = value;
-                //     });
-                //   },
-                //   decoration: const InputDecoration(
-                //     hintText: 'Enter your remarks',
-                //     border: OutlineInputBorder(),
-                //   ),
-                // ),
                 TextFormField(
                   controller: remarkController,
                   onSaved: (input) =>
@@ -115,7 +113,7 @@ class _ReturnOrderState extends State<ReturnOrder> {
                   decoration: const InputDecoration(
                       labelText: 'Enter remarks',
                       // hintText: 'Enter remarks',
-                      border: OutlineInputBorder()),
+                      border: UnderlineInputBorder()),
                 ),
                 const SizedBox(height: 32),
                 const Text('Attach Image (optional)'),
@@ -256,26 +254,30 @@ class _ReturnOrderState extends State<ReturnOrder> {
                       if ((_returnFormKey.currentState?.validate() ?? false)) {
                         showLoaderDialog(context);
                         response = await WorkOrderApi.returnOrder(widget.woId,
-                            widget.soId, returnType, remarks, listImage);
-                        if (mounted) {}
-                        if (response.contains("Success")) {
-                          snackbarMessage(
-                              context, response);
-                          Navigator.popUntil(context, (route) => route.isFirst);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                settings: const RouteSettings(
-                                  name: "/show",
-                                ),
-                                builder: (context) => ShowServiceOrder(
-                                      orderID: widget.woId,
-                                    )),
-                          );
-                        } else {
-                          Navigator.pop(context);
-                          colorSnackbarMessage(
-                              context, response, Colors.red);
+                            widget.ftthId, widget.type, returnType, remarkController.text, listImage);
+                        print(response);
+                        if (mounted) {
+                          if (response.statusCode >= 200 && response.statusCode <= 300) {
+                            snackbarMessage(
+                                context, "Order Succesfully returned!");
+                            // Navigator.popUntil(
+                            //     context, (route) => route.isFirst);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  settings: const RouteSettings(
+                                    name: "/show",
+                                  ),
+                                  builder: (context) =>
+                                      ShowServiceOrder(
+                                        orderID: widget.woId,
+                                      )),
+                            );
+                          } else {
+                            Navigator.pop(context);
+                            colorSnackbarMessage(
+                                context, "Return failed! Contact admin if issue persists.", Colors.red);
+                          }
                         }
                       }
                     },

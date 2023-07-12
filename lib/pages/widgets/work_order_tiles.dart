@@ -100,7 +100,7 @@ class CustomListItemTwo extends StatelessWidget {
         decoration: const BoxDecoration(border: Border(
           bottom: BorderSide(
             width: 1,
-            color: Colors.blue
+            color: Colors.indigoAccent
           ),
         )),
         child: SizedBox(

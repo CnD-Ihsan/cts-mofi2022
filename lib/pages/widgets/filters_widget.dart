@@ -15,9 +15,13 @@ class _FiltersState extends State<Filters> {
   };
   Map <String, String?> filter = {'status' : 'Pending Activation', 'type' : 'New Installation'};
 
+  @override
   void initState(){
     filter = widget.filter.value;
+    super.initState();
   }
+
+  MaterialColor themeColor = Colors.indigo;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.circle_notifications),
                 title: const Text('Pending'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Pending' ? true : false,
                 onTap: () async {
                   Navigator.pop(context);
@@ -55,7 +59,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.circle_notifications_outlined),
                 title: const Text('Pending Attachment'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Pending Attachment' ? true : false,
                 onTap: () async {
                   filter['status'] = 'Pending Attachment';
@@ -67,7 +71,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.check_circle),
                 title: const Text('Completed'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Completed' ? true : false,
                 onTap: () async {
                   filter['status'] = 'Completed';
@@ -77,7 +81,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.arrow_circle_left_sharp),
                 title: const Text('Returned'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Returned' ? true : false,
                 onTap: () async {
                   filter['status'] = 'Returned';
@@ -87,7 +91,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.cancel),
                 title: const Text('Cancelled'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Cancelled' ? true : false,
                 onTap: () async {
                   filter['status'] = 'Cancelled';
@@ -97,7 +101,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.circle_notifications),
                 title: const Text('Show All'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == '' ? true : false,
                 onTap: () async {
                   filter['status'] = '';
@@ -128,7 +132,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.circle_notifications),
                 title: const Text('New Installation'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'New Installation' ? true : false,
                 onTap: () async {
                   filter['type'] = 'New Installation';
@@ -139,7 +143,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.circle_notifications),
                 title: const Text('Termination'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Termination' ? true : false,
                 onTap: () async {
                   filter['type'] = 'Termination';
@@ -150,7 +154,7 @@ class _FiltersState extends State<Filters> {
               ListTile(
                 leading: const Icon(Icons.circle_notifications),
                 title: const Text('Troubleshoot'),
-                selectedColor: Colors.blue,
+                selectedColor: themeColor,
                 selected: filter['status'] == 'Troubleshoot' ? true : false,
                 onTap: () async {
                   filter['type'] = 'Troubleshoot';
