@@ -270,16 +270,15 @@ class WorkOrderApi {
       body: jsonEncode(jsonOnt),
     );
 
-    print(response.statusCode);
-
     if(response.statusCode >= 200 && response.statusCode <= 300){
       if(listImage.isEmpty){
         return response;
       }
       try{
-        return await uploadMultiImgAttachment('return', listImage, woId);
+        await uploadMultiImgAttachment('return', listImage, woId);
+        return response;
       }catch(e){
-        return "Error: Failed to upload attachment. Please retry later.";
+        return e;
       }
     }else{
       return "Error: Failed to establish connection to server";
@@ -455,8 +454,6 @@ class WorkOrderApi {
         'wo_id': id.toString(),
       }
     );
-
-    print(response.body.toString());
     Map img = json.decode(response.body);
     return img;
   }

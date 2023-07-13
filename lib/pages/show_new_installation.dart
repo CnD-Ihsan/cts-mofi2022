@@ -427,13 +427,9 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                   ],
                 ),
               ),
-              so.progress == 'activation' ? const Divider() : newInstallationAttachments(context, widget.orderID, so.progress ?? 'close_requested', listImage, refresh),
-              // wo.woId != 0 ? Attachments(woId: wo.woId, urlImages: wo.img ?? []) : const Divider(),
-              // FutureBuilder(
-              //     future: WorkOrderApi.getImgAttachments(wo.woId),
-              //     builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-              //       return Attachments(woId: wo.woId, urlImages: wo.img ?? []);
-              // })
+              listImage.isEmpty && so.progress == 'closed_requested'
+                  ? const SizedBox(height: 20,)
+                  : newInstallationAttachments(context, widget.orderID, so.progress ?? 'close_requested', so.status ,listImage, refresh),
             ],
           ),
         ),

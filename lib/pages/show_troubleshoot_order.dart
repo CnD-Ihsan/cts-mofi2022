@@ -559,11 +559,12 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                       ],
                     ),
                   ),
-
                 ],
               ): const SizedBox(height: 0,),
-              troubleshootOrderAttachments(
-                  context, widget.orderID, listImage, tt.progress ?? "close_requested" ,refresh),
+              listImage.isEmpty && tt.progress == 'close_requested'
+                  ? const SizedBox(height: 20,)
+                  : troubleshootOrderAttachments(
+                  context, widget.orderID, listImage, tt.progress ?? "close_requested" , tt.status, refresh),
             ],
           ),
         ),
