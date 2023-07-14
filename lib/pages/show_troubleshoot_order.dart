@@ -55,15 +55,17 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
 
   void refresh(Map img, String action) async {
     await getAsync(widget.orderID, false);
-    if (mounted) {}
-    if (action == 'delete') {
-      snackbarMessage(context, 'Image attachment deleted.');
-      Navigator.pop(context);
-    } else {
-      snackbarMessage(context, 'Image uploaded');
+    if (mounted) {
+      if (action == 'delete') {
+        snackbarMessage(context, 'Image attachment deleted.');
+        Navigator.pop(context);
+      } else {
+        snackbarMessage(context, 'Image uploaded');
+        Navigator.pop(context);
+      }
+      listImage = img;
+      updateActionButton();
     }
-    listImage = img;
-    updateActionButton();
   }
 
   FloatingActionButton? currentButton(String? progress) {
