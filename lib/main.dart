@@ -7,6 +7,7 @@ import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/route.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -37,7 +38,7 @@ class _MyAppState extends State<MyApp> {
       ),
       routes: {
         '/login': (context) => const Login(),
-        '/index': (context) =>
+        '/list': (context) =>
             const WorkOrders(user: 'Unauthorized', email: 'Unauthorized'),
         '/show/:orderID': (context) => const ShowServiceOrder(
               orderID: 0,

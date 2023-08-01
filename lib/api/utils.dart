@@ -1,3 +1,4 @@
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -49,6 +50,15 @@ class MapUtils {
     } else {
       throw 'Could not open the map.';
     }
+  }
+}
+
+class CameraUtils {
+  CameraUtils._();
+
+  static Future<String> getScanRes() async {
+    return await FlutterBarcodeScanner.scanBarcode(
+        "#ff6666", "Cancel", true, ScanMode.BARCODE);
   }
 }
 

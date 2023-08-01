@@ -255,24 +255,25 @@ class _ReturnOrderState extends State<ReturnOrder> {
                         showLoaderDialog(context);
                         response = await WorkOrderApi.returnOrder(widget.woId,
                             widget.ftthId, widget.type, returnType, remarkController.text, listImage);
-                        print(response);
                         if (mounted) {
                           if (response.statusCode >= 200 && response.statusCode <= 300) {
+                            Navigator.pop(context);
                             snackbarMessage(
                                 context, "Order Succesfully returned!");
                             // Navigator.popUntil(
                             //     context, (route) => route.isFirst);
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  settings: const RouteSettings(
-                                    name: "/show",
-                                  ),
-                                  builder: (context) =>
-                                      ShowServiceOrder(
-                                        orderID: widget.woId,
-                                      )),
-                            );
+                            // Navigator.pushReplacement(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //       settings: const RouteSettings(
+                            //         name: "/show",
+                            //       ),
+                            //       builder: (context) =>
+                            //           ShowServiceOrder(
+                            //             orderID: widget.woId,
+                            //           )),
+                            // );
+                            Navigator.pop(context, widget.woId);
                           } else {
                             Navigator.pop(context);
                             colorSnackbarMessage(

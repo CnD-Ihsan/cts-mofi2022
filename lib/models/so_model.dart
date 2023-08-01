@@ -18,13 +18,13 @@ class ServiceOrder {
   String? date;
   String? time;
 
-  // final num soId;
-  // final String soType;
   final String custContact;
   final String custName;
   final String carrier;
   final String speed;
   final String? ontSn;
+  final String? rgwSn;
+  final String? speedTest;
 
   ServiceOrder({
     required this.soId,
@@ -43,13 +43,13 @@ class ServiceOrder {
     this.lat = 0.0,
     this.lng = 0.0,
 
-    // this.soId,
-    // this.soType,
     this.custContact = '',
     this.custName = '',
     this.carrier = '',
     this.speed = '',
     this.ontSn,
+    this.rgwSn,
+    this.speedTest,
   });
 
   factory ServiceOrder.fromJson(Map<ServiceOrder, dynamic> json){

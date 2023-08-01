@@ -42,6 +42,7 @@ class WorkOrderApi {
           status: data['status'],
           requestedBy: data['requested_by'],
           address: data['cust_addr_name'],
+          startDate: data['start_date'],
           date: tempDate,
           time: tempTime,
           group: data['group'],
@@ -92,7 +93,7 @@ class WorkOrderApi {
     }
 
     return ServiceOrder(
-      soId: id,
+      soId: data['so_id'],
       soName: data['crm_no'],
       status: data['status'],
       requestedBy: data['requested_by'],
@@ -104,6 +105,8 @@ class WorkOrderApi {
       lat: double.parse(data['latitude']),
       lng: double.parse(data['longitude']),
       ontSn: data['ont_sn'],
+      rgwSn: data['hc']['rgw_sn'],
+      speedTest: data['hc']['speed_test'],
       custContact: data['cust_contact'],
       custName: data['cust_name'],
       carrier: data['carrier'],
@@ -173,12 +176,17 @@ class WorkOrderApi {
   }
 
 
-  static soCompleteOrder(num soId, String? ontSn) async {
+  static soCompleteOrder(num woId, String? ontSn, String? rgwSn, String? speedTest) async {
     var uri = Uri.parse('$wfmHost/work-orders/so-request-complete');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    Map jsonOnt = {"so_id": soId, "ont_sn": ontSn};
+    Map jsonOnt = {
+      "wo_id": woId,
+      "ont_sn": ontSn,
+      "rgw_sn": rgwSn,
+      "speed_test": speedTest
+    };
 
     final response = await http.post(
       uri,
@@ -200,6 +208,7 @@ class WorkOrderApi {
         temp = {"error" : "The provided string is not a valid JSON"};
       }
     }else{
+      print(response.body);
       temp = {"error" : "Status code: ${response.statusCode}"};
     }
 
@@ -271,15 +280,14 @@ class WorkOrderApi {
     );
 
     if(response.statusCode >= 200 && response.statusCode <= 300){
-      if(listImage.isEmpty){
-        return response;
+      if(listImage.isNotEmpty){
+        try{
+          await uploadMultiImgAttachment('return', listImage, woId);
+        }catch(e){
+          return e;
+        }
       }
-      try{
-        await uploadMultiImgAttachment('return', listImage, woId);
-        return response;
-      }catch(e){
-        return e;
-      }
+      return response;
     }else{
       return "Error: Failed to establish connection to server";
     }

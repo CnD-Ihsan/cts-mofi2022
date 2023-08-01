@@ -38,8 +38,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
 
   @override
   void initState() {
-    loadingScreen(context);
-    getAsync(widget.orderID, true);
+    getAsync(widget.orderID);
     super.initState();
   }
 
@@ -54,7 +53,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   }
 
   void refresh(Map img, String action) async {
-    await getAsync(widget.orderID, false);
+    await getAsync(widget.orderID);
     if (mounted) {
       if (action == 'delete') {
         snackbarMessage(context, 'Image attachment deleted.');
@@ -112,7 +111,8 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
 
   late SharedPreferences prefs;
 
-  getAsync(num id, bool needPop) async {
+  getAsync(num id) async {
+    loadingScreen(context);
     try {
       prefs = await SharedPreferences.getInstance();
       tt = await WorkOrderApi.getTroubleshootOrder(id);
@@ -122,9 +122,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     }
     if (mounted) {
       setState(() {});
-      if (needPop) {
-        Navigator.pop(context);
-      }
+      Navigator.pop(context); //Pop the loadingScreen(context);
       if (tt.ttId == 0) {
         colorSnackbarMessage(
             context,
@@ -183,20 +181,23 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         height: 30,
                         value: 0,
                         onTap: () async {
-                          await Future.delayed(
-                              const Duration(milliseconds: 10));
-                          if (mounted) {
-                            Navigator.push(
+                          await Future.delayed(const Duration(milliseconds: 10));
+                          if(mounted){
+                            final returnedOrder = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      ReturnOrder(
-                                        woId: widget.orderID,
-                                        ftthId: tt.ttId,
-                                        type: "TT",
-                                        refresh: refresh,
-                                      )),
+                                  builder: (context) => ReturnOrder(
+                                    woId: widget.orderID,
+                                    ftthId: tt.ttId,
+                                    type: "TT",
+                                    refresh: refresh,
+                                  )),
                             );
+
+                            if(returnedOrder != null){
+                              await getAsync(returnedOrder as num);
+                              setState(() {});
+                            }
                           }
                         },
                         child: const Text(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wfm/api/utils.dart';
 import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
+import 'package:wfm/pages/user_screens.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/show_troubleshoot_order.dart';
@@ -20,21 +20,39 @@ class WorkOrders extends StatefulWidget {
 }
 
 class _WorkOrdersState extends State<WorkOrders> {
-  var ctime, user, email;
+  var ctime;
+  DateTimeRange? _dtrFilter;
+  late String user = "-", email = "-", token = "-", role = "-", organization = "-"; //user info
+
   final ValueNotifier<Map<String, String?>> filterNotifier = ValueNotifier({
     'type': 'All Orders',
     'status': 'All Status',
+    'search': null,
   });
+
+  final ValueNotifier<Map<String, DateTime?>> dateFilterNotifier =
+      ValueNotifier({'singleDate': null, 'startDate': null, 'endDate': null});
+
   var refreshKey = GlobalKey<RefreshIndicatorState>();
+  final _searchController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late SharedPreferences prefs;
+  late Future<List<WorkOrder>> _workOrderList;
 
   @override
   void initState() {
     getPrefs();
+    _workOrderList = _fetchWorkOrders();
     super.initState();
   }
 
-  setFilter(String value, String type, Icon icon){
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  setFilter(String value, String type, Icon icon) {
     return ListTile(
       leading: icon,
       title: Text(value),
@@ -50,8 +68,16 @@ class _WorkOrdersState extends State<WorkOrders> {
 
   getPrefs() async {
     prefs = await SharedPreferences.getInstance();
-    user = prefs.getString('user') ?? 'Unauthorized';
+    user =  prefs.getString('user') ?? 'Unauthorized';
     email = prefs.getString('email') ?? 'Unauthorized';
+    token = prefs.getString('token') ?? '';
+    role = prefs.getString('role') ?? '';
+    organization = prefs.getString('organization') ?? '';
+    setState(() {});
+  }
+
+  Future<List<WorkOrder>> _fetchWorkOrders() async {
+    return await WorkOrderApi.getWorkOrderList();
   }
 
   List<WorkOrder> list = [];
@@ -59,37 +85,42 @@ class _WorkOrdersState extends State<WorkOrders> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: InkWell(
-            child: Text('${filterNotifier.value['type']}'),
-          onTap: (){},
+        title: TextField(
+          controller: _searchController,
+          showCursor: false,
+          autofocus: false,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            label: Text(filterNotifier.value['type'] ?? "e", style: TextStyle(color: Colors.white),),
+            hintText: "Search order",
+            hintStyle: const TextStyle(color: Colors.white),
+            border: InputBorder.none,
+          ),
+          // onChanged: (searchValue) {
+          //   print(searchValue);
+          //   filterNotifier.value['search'] = searchValue;
+          //   print(filterNotifier.value['search']);
+          //   setState(() {
+          //   });
+          // },
+          onEditingComplete: () {
+            filterNotifier.value['search'] =
+                _searchController.text.toUpperCase();
+            setState(() {});
+          },
         ),
         actions: [
-          Builder(
-            builder: (context) {
-              return IconButton(
-                  onPressed: () {
-                    Scaffold.of(context).openEndDrawer();
-                  },
-                  icon: const Icon(Icons.filter_list_outlined));
-            }
-          )
+          Builder(builder: (context) {
+            return IconButton(
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+                icon: const Icon(Icons.filter_list_outlined));
+          })
         ],
       ),
-      // floatingActionButton: FloatingActionButton.extended(
-      //   onPressed: () => {
-      //     showModalBottomSheet<void>(
-      //       context: context,
-      //       isScrollControlled: true,
-      //       builder: (BuildContext context) {
-      //         // Returning SizedBox instead of a Container
-      //         return Divider();
-      //       },
-      //     ),
-      //   },
-      //   label: const Text('Filter'),
-      //   icon: const Icon(Icons.filter_list_sharp),
-      // ),
       endDrawer: Drawer(
         child: Container(
           color: Colors.white,
@@ -99,22 +130,139 @@ class _WorkOrdersState extends State<WorkOrders> {
               builder: (context, value, child) => ListView(
                 padding: EdgeInsets.zero,
                 children: [
+                  const SizedBox(height: 66),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: Colors.indigo,
+                            borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(100),
+                                bottomLeft: Radius.circular(100)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.indigo.withOpacity(
+                                    0.3), // Shadow color with opacity
+                                spreadRadius: 2, // Spread radius of the shadow
+                                blurRadius: 3, // Blur radius of the shadow
+                                offset: const Offset(1.5,
+                                    2.5), // Offset of the shadow (horizontal, vertical)
+                              )
+                            ]),
+                        height: 40,
+                        width: 284,
+                        child: const Center(
+                          child: Text(
+                            'Filters',
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(
-                    height: 50,
+                    height: 30,
+                  ),
+                  const ListTile(
+                    selected: false,
+                    tileColor: Colors.indigoAccent,
+                    title: Text(
+                      'Status',
+                      style: TextStyle(fontSize: 16, color: Colors.indigo),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        setFilter(
+                            'All Status', 'status', const Icon(Icons.circle)),
+                        setFilter('Pending', 'status',
+                            const Icon(Icons.circle_notifications)),
+                        setFilter('Completed', 'status',
+                            const Icon(Icons.check_circle)),
+                        setFilter(
+                            'Cancelled', 'status', const Icon(Icons.cancel)),
+                        setFilter('Returned', 'status',
+                            const Icon(Icons.arrow_circle_left_sharp)),
+                      ],
+                    ),
                   ),
                   const ListTile(
                     title: Text(
-                      'Filter Status',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.center,
+                      'Date',
+                      style: TextStyle(fontSize: 16, color: Colors.indigo),
+                      textAlign: TextAlign.start,
                     ),
                   ),
-                  const Divider(),
-                  setFilter('Pending', 'status',  const Icon(Icons.circle_notifications)),
-                  setFilter('Completed', 'status',  const Icon(Icons.check_circle)),
-                  setFilter('Cancelled', 'status',  const Icon(Icons.cancel)),
-                  setFilter('Returned', 'status',  const Icon(Icons.arrow_circle_left_sharp)),
-                  setFilter('All Status', 'status',  const Icon(Icons.circle)),
+                  Column(
+                    children: [
+                      const SizedBox(
+                        height: 17,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                              onPressed: () async {
+                                var today = DateTime.now();
+                                dateFilterNotifier.value['singleDate'] =
+                                    await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2023),
+                                        lastDate: DateTime(
+                                            today.year, today.month + 6));
+                                setState(() {
+                                  Navigator.pop(context);
+                                });
+                              },
+                              child: const Text('Single Date')),
+                          ElevatedButton(
+                              onPressed: () async {
+                                var today = DateTime.now();
+                                _dtrFilter = await showDateRangePicker(
+                                    context: context,
+                                    firstDate: DateTime(2023),
+                                    lastDate:
+                                        DateTime(today.year, today.month + 6));
+                                dateFilterNotifier.value['startDate'] =
+                                    _dtrFilter?.start;
+                                dateFilterNotifier.value['endDate'] =
+                                    _dtrFilter?.end;
+                                dateFilterNotifier.value['endDate'] =
+                                    dateFilterNotifier.value['endDate']!
+                                        .add(const Duration(days: 1));
+                                setState(() {});
+                              },
+                              child: const Text('Range Date')),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 17,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                              style: ButtonStyle(),
+                              onPressed: () {
+                                dateFilterNotifier.value['singleDate'] = null;
+                                dateFilterNotifier.value['startDate'] = null;
+                                dateFilterNotifier.value['endDate'] = null;
+                                setState(() {});
+                              },
+                              child: const Text('Reset Date Filter')),
+                        ],
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
@@ -122,72 +270,126 @@ class _WorkOrdersState extends State<WorkOrders> {
         ),
       ),
       drawer: Drawer(
-        child: ValueListenableBuilder(
-          valueListenable: filterNotifier,
-          builder: (context, value, child) => ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              UserAccountsDrawerHeader(
-                accountName: Text(user ?? "Missing Value"),
-                accountEmail: Text(email ?? "Missing Value"),
-                decoration: const BoxDecoration(
-                  color: Colors.teal,
-                  image: DecorationImage(
-                    fit: BoxFit.fill,
-                    image: AssetImage('assets/img/bg4.jpg'),
-                  ),
+        child: Column(
+          children: [
+            Container(
+              height: 230,
+              decoration: const BoxDecoration(
+                borderRadius:
+                    BorderRadius.only(bottomRight: Radius.circular(150)),
+                gradient:
+                    LinearGradient(colors: [Colors.indigo, Colors.deepPurple]),
+                color: Colors.indigo,
+                image: DecorationImage(
+                  fit: BoxFit.fill,
+                  image: AssetImage('assets/img/bg4.jpg'),
                 ),
               ),
-              setFilter('New Installation', 'type',  const Icon(Icons.build)),
-              setFilter('Termination', 'type',  const Icon(Icons.dnd_forwardslash)),
-              setFilter('Troubleshoot', 'type',  const Icon(Icons.settings)),
-              setFilter('All Orders', 'type',  const Icon(Icons.select_all)),
-              const Divider(),
-              // ListTile(
-              //   title: const Text('Speed Test'),
-              //   leading: const Icon(Icons.speed),
-              //   onTap: () async {
-              //     SpeedTestUtils.runSpeedTest();
-              //   },
-              // ),
-              ListTile(
-                title: const Text('Log Out'),
-                leading: const Icon(Icons.exit_to_app),
-                onTap: () async {
-                  loadingScreen(context);
-                  await Future.delayed(Duration(seconds: 1), () {
-                  });
-                  final SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  prefs.remove('user');
-                  prefs.remove('email');
-                  prefs.remove('token');
-                  if (mounted) {
-                    colorSnackbarMessage(context, 'Logged out', Colors.green);
-                    Navigator.pushReplacement<void, void>(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => const Landing(),
-                      ),
-                    );
-                  }
-                },
+              child: Column(
+                children: [
+                  const Spacer(),
+                  ListTile(
+                    title: Text(widget.user),
+                    subtitle: Text(widget.email),
+                    textColor: Colors.white,
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  )
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12,),
+            setFilter('All Orders', 'type', const Icon(Icons.assignment_outlined)),
+            setFilter('New Installation', 'type',
+                const Icon(Icons.add_business_outlined)),
+            setFilter('Troubleshoot', 'type', const Icon(Icons.build)),
+            // ListTile(
+            //   title: const Text('Speed Test'),
+            //   leading: const Icon(Icons.speed),
+            //   onTap: () async {
+            //     SpeedTestUtils.runSpeedTest();
+            //   },
+            // ),
+            const Spacer(),
+            const Divider(),
+            role == 'Admin' ? ListTile(
+              title: const Text('User Management'),
+              leading: const Icon(Icons.person),
+              onTap: () => {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      settings: const RouteSettings(
+                        name: "/listUsers",
+                      ),
+                      builder: (context) => UsersScreen(token: token,)),
+                ),
+              },
+            ) : const SizedBox(),
+            ListTile(
+              title: const Text('Update Password'),
+              leading: const Icon(Icons.person),
+              onTap: () => {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      settings: const RouteSettings(
+                        name: "/listUsers",
+                      ),
+                      builder: (context) => UpdatePassword(userEmail: email)),
+                ),
+              },
+            ),
+            ListTile(
+              title: const Text('Log Out'),
+              leading: const Icon(Icons.exit_to_app),
+              onTap: () async {
+                loadingScreen(context);
+                await Future.delayed(const Duration(seconds: 1), () {});
+                final SharedPreferences prefs =
+                    await SharedPreferences.getInstance();
+                await prefs.clear();
+                if (mounted) {
+                  colorSnackbarMessage(context, 'Logged out', Colors.green);
+                  Navigator.pushReplacement<void, void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) => const Landing(),
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+          ],
         ),
       ),
       body: WillPopScope(
         onWillPop: () {
+          if(FocusScope.of(context).hasFocus){
+            FocusScope.of(context).unfocus();
+            return Future.value(false);
+          }
+          if(_scaffoldKey.currentState!.isDrawerOpen){
+            _scaffoldKey.currentState!.closeDrawer();
+            return Future.value(false);
+          }
+          if(_scaffoldKey.currentState!.isEndDrawerOpen){
+            _scaffoldKey.currentState!.closeEndDrawer();
+            return Future.value(false);
+          }
           DateTime now = DateTime.now();
           if (ctime == null ||
               now.difference(ctime) > const Duration(seconds: 2)) {
             //add duration of press gap
             ctime = now;
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text(
-                    'Press Back Button Again to Exit'),
-            backgroundColor: Colors.indigoAccent,)); //scaffold message, you can show Toast message too.
+              content: Text('Press Back Button Again to Exit'),
+              backgroundColor: Colors.indigoAccent,
+            )); //scaffold message, you can show Toast message too.
             return Future.value(false);
           }
           SystemNavigator.pop();
@@ -195,25 +397,59 @@ class _WorkOrdersState extends State<WorkOrders> {
         },
         child: Center(
             child: FutureBuilder<List<WorkOrder>>(
-                future: WorkOrderApi.getWorkOrderList(),
+                future: _workOrderList,
                 builder: (context, snapshot) {
-                  if(snapshot.connectionState == ConnectionState.waiting){
+                  print("na load lg dy");
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
-                  }else if (snapshot.hasData) {
+                  } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                     list = snapshot.data!;
 
+                    if (filterNotifier.value['search'] != null ||
+                        filterNotifier.value['search'] != '') {
+                      list = list
+                          .where((workOrder) => workOrder.woName
+                              .contains(filterNotifier.value['search'] ?? ''))
+                          .toList();
+                    }
                     if (filterNotifier.value['status'] != 'All Status') {
                       list = list
                           .where((workOrder) =>
-                              workOrder.status == filterNotifier.value['status'])
+                              workOrder.status ==
+                              filterNotifier.value['status'])
                           .toList();
                     }
                     if (filterNotifier.value['type'] != 'All Orders') {
                       list = list
                           .where((workOrder) =>
-                      workOrder.type == filterNotifier.value['type'])
+                              workOrder.type == filterNotifier.value['type'])
+                          .toList();
+                    }
+                    if (dateFilterNotifier.value['singleDate'] != null) {
+                      list = list
+                          .where((workOrder) => DateUtils.isSameDay(
+                              DateTime.parse(workOrder.startDate ?? ''),
+                              dateFilterNotifier.value['singleDate'] ??
+                                  DateTime.now()))
+                          .toList();
+                    }
+                    if (dateFilterNotifier.value['startDate'] != null) {
+                      list = list
+                          .where((workOrder) =>
+                              DateTime.parse(workOrder.startDate ?? '').isAfter(
+                                  dateFilterNotifier.value['startDate'] ??
+                                      DateTime.now()))
+                          .toList();
+                    }
+                    if (dateFilterNotifier.value['endDate'] != null) {
+                      list = list
+                          .where((workOrder) =>
+                              DateTime.parse(workOrder.startDate ?? '')
+                                  .isBefore(
+                                      dateFilterNotifier.value['endDate'] ??
+                                          DateTime.now()))
                           .toList();
                     }
                     return RefreshIndicator(
@@ -225,11 +461,11 @@ class _WorkOrdersState extends State<WorkOrders> {
                           WorkOrder wo = list[list.length - index - 1];
                           var logo = 'cts';
 
-                          if(!wo.requestedBy.contains('CTS')){
+                          if (!wo.requestedBy.contains('CTS')) {
                             logo = wo.requestedBy.toLowerCase();
                           }
 
-                          if(wo.type != 'Troubleshoot'){
+                          if (wo.type != 'Troubleshoot') {
                             return InkWell(
                               onTap: () {
                                 Navigator.push(
@@ -239,8 +475,8 @@ class _WorkOrdersState extends State<WorkOrders> {
                                         name: "/showServiceOrder",
                                       ),
                                       builder: (context) => ShowServiceOrder(
-                                        orderID: wo.woId,
-                                      )),
+                                            orderID: wo.woId,
+                                          )),
                                 );
                               },
                               child: CustomListItemTwo(
@@ -255,7 +491,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                 time: wo.time ?? 'Unassigned',
                               ),
                             );
-                          }else{
+                          } else {
                             return InkWell(
                               onTap: () {
                                 Navigator.push(
@@ -264,9 +500,10 @@ class _WorkOrdersState extends State<WorkOrders> {
                                       settings: const RouteSettings(
                                         name: "/show",
                                       ),
-                                      builder: (context) => ShowTroubleshootOrder(
-                                        orderID: wo.woId,
-                                      )),
+                                      builder: (context) =>
+                                          ShowTroubleshootOrder(
+                                            orderID: wo.woId,
+                                          )),
                                 );
                               },
                               child: CustomListItemTwo(
@@ -285,11 +522,12 @@ class _WorkOrdersState extends State<WorkOrders> {
                         },
                       ),
                     );
-                  } else if(snapshot.hasError){
+                  } else if (snapshot.hasError) {
                     return const Center(
-                      child: Text('Error loading order', style: TextStyle(color: Colors.red)),
+                      child: Text('Error loading order',
+                          style: TextStyle(color: Colors.red)),
                     );
-                  } else{
+                  } else {
                     return const Center(
                       child: Text("Empty order"),
                     );
@@ -298,15 +536,6 @@ class _WorkOrdersState extends State<WorkOrders> {
       ),
     );
   }
-
-  // Future<void> refreshList() async {
-  //   refreshKey.currentState?.show(
-  //       atTop:
-  //       true); // change atTop to false to show progress indicator at bottom
-  //   await Future.delayed(Duration(seconds: 2)); //wait here for 2 second
-  //   setState(() {
-  //   });
-  // }
 
   Future<void> _pullRefresh() async {
     List<WorkOrder> refreshList = await WorkOrderApi.getWorkOrderList();

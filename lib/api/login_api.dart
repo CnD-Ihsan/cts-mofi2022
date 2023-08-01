@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:wfm/models/login_model.dart';
+import 'package:wfm/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,7 +34,7 @@ class LoginApi{
     }
   }
 
-  static Future<LoginResponseModel> loginRequest(LoginRequestModel login) async{
+  static Future<LoginResponseModel> loginRequest(String email, String password) async{
     var uri = Uri.parse('$wfmHost/auth/login');
 
     //Initialize shared preferences
@@ -50,8 +50,8 @@ class LoginApi{
             "Authorization" : ""
           },
           body: {
-            "email" : login.email,
-            "password" : login.password,
+            "email" : email,
+            "password" : password,
           }
       ).timeout(const Duration(seconds:10));
 
@@ -59,8 +59,10 @@ class LoginApi{
 
       if(response.statusCode == 200){
         // Set shared preferences
-        prefs.setString('email', login.email);
+        prefs.setString('email', email);
         prefs.setString('user', data['name']);
+        prefs.setString('role', data['role']);
+        prefs.setString('organization', data['organization']);
         prefs.setString('token', data['access_token']);
 
         return LoginResponseModel(

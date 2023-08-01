@@ -1,7 +1,6 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:wfm/models/login_model.dart';
 import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/api/login_api.dart';
 
@@ -181,10 +180,8 @@ class __FormContentState extends State<_FormContent> {
                   if (_formKey.currentState?.validate() ?? false) {
                     showLoaderDialog(context);
                     loginResponse =
-                        await LoginApi.loginRequest(LoginRequestModel(
-                      email: emController.text,
-                      password: pwController.text,
-                    ));
+                        await LoginApi.loginRequest(emController.text, pwController.text);
+                    await Future.delayed(const Duration(milliseconds: 800));
                     if (!mounted) return;
                     Navigator.pop(context);
                     if (loginResponse.user != '') {

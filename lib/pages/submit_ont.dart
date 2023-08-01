@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:wfm/api/utils.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
@@ -52,8 +53,13 @@ class _SubmitONTState extends State<SubmitONT> {
                     iconSize: 20,
                     color: Colors.indigo,
                     tooltip: 'Scan serial number barcode',
-                    onPressed: () {
-                      getScanRes();
+                    onPressed: () async {
+                      ontSn = await CameraUtils.getScanRes();
+
+                      setState(() {
+                        ontSn = ontSn;
+                        txt.text = ontSn;
+                      });
                     },
                   ),
                   contentPadding:
@@ -133,16 +139,6 @@ class _SubmitONTState extends State<SubmitONT> {
         ),
       ),
     );
-  }
-
-  void getScanRes() async {
-    ontSn = await FlutterBarcodeScanner.scanBarcode(
-        "#ff6666", "Cancel", true, ScanMode.BARCODE);
-
-    setState(() {
-      ontSn = ontSn;
-      txt.text = ontSn;
-    });
   }
 
   showLoaderDialog(BuildContext context) {

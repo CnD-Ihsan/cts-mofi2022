@@ -26,19 +26,21 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
   Stream<dynamic>? bc;
   Map listImage = {};
   Map requestVerification = {};
-  var txt = TextEditingController();
+  final TextEditingController _rgwSnCt = TextEditingController();
+  final TextEditingController _speedTestCt = TextEditingController();
+
+  final GlobalKey<FormState> _completeSoFormKey = GlobalKey<FormState>();
   final GlobalKey _scrollAttachmentKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
-    loadingScreen(context);
-    getAsync(widget.orderID, true);
+    getAsync(widget.orderID);
     super.initState();
   }
 
   void refresh(Map img, String action) async {
-      await getAsync(widget.orderID, false);
+      await getAsync(widget.orderID);
       if(mounted){
         if(action == 'delete'){
           snackbarMessage(context, 'Image attachment deleted.');
@@ -93,13 +95,19 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
     }else if(progress == 'completion'){
       return FloatingActionButton.extended(
         onPressed: () async => {
-          requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn),
-          if(!requestVerification.containsKey('error')){
-            _pullRefresh(),
-            snackbarMessage(context, 'Verification request submitted!')
+          if(_completeSoFormKey.currentState!.validate()){
+            loadingScreen(context),
+            requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn, _rgwSnCt.text, _speedTestCt.text),
+            if(!requestVerification.containsKey('error')){
+              _pullRefresh(),
+              Navigator.pop(context),
+              snackbarMessage(context, 'Verification request submitted!')
+            }else{
+              colorSnackbarMessage(context, 'Request error! ${requestVerification['error']}', Colors.red)
+            },
           }else{
-            colorSnackbarMessage(context, 'Request error! ${requestVerification['error']}', Colors.red)
-          },
+           false,
+          }
         },
         label: const Text('Complete Order'),
         icon: const Icon(Icons.check_circle),
@@ -122,20 +130,18 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
 
   late SharedPreferences prefs;
 
-  getAsync(num id, bool needPop) async {
+  getAsync(num id) async {
+    loadingScreen(context);
     try {
       prefs = await SharedPreferences.getInstance();
       so = await WorkOrderApi.getServiceOrder(id);
-      print(so.progress);
       listImage = so.img;
     } catch (e) {
       print(e);
     }
     if (mounted) {
       setState(() {});
-      if(needPop){
-        Navigator.pop(context);
-      }
+      Navigator.pop(context); //Pop the loadingScreen(context);
       if(so.soId == 0){
         colorSnackbarMessage(context, 'Failed to get work order details! Contact admin if issue persists.', Colors.red);
         Navigator.pushReplacement(
@@ -179,7 +185,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       onTap: () async {
                         await Future.delayed(const Duration(milliseconds: 10));
                         if(mounted){
-                          Navigator.push(
+                          final returnedOrder = await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => ReturnOrder(
@@ -189,6 +195,11 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                                   refresh: refresh,
                                 )),
                           );
+
+                          if(returnedOrder != null){
+                            await getAsync(returnedOrder as num);
+                            setState(() {});
+                          }
                         }
                       },
                       child: const Text("Return Order", style: TextStyle(color: Colors.red),),
@@ -383,29 +394,11 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                             InkWell(
                               onTap: () async {
                                 await phonePromptDialog(context, so.custContact);
-                                // final Uri url = Uri.parse('tel:${so.custContact}');
-                                // if(await canLaunchUrl(url)){
-                                //   launchUrl(url);
-                                // }
                               },
                               child: const Icon(Icons.phone, color: themeColor,),
                             ),
                           ],)
                     ),
-                    // ListTile(
-                    //   leading: const Icon(Icons.phone),
-                    //   onTap: () async {
-                    //     final Uri url = Uri.parse('tel:${wo.custContact}');
-                    //     if(await canLaunchUrl(url)){
-                    //       launchUrl(url);
-                    //     }
-                    //   },
-                    //   title: Text(
-                    //     wo.custContact,
-                    //     style: textStyle(),
-                    //     textAlign: TextAlign.start,
-                    //   ),
-                    // ),
                     ListTile(
                       leading: const Text(
                         'ONT',
@@ -427,9 +420,90 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                   ],
                 ),
               ),
-              listImage.isEmpty && so.progress == 'closed_requested'
-                  ? const SizedBox(height: 20,)
-                  : newInstallationAttachments(context, widget.orderID, so.progress ?? 'close_requested', so.status ,listImage, refresh),
+              const ListTile(
+                title: Text(
+                  'Required Details',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              Form(
+                key: _completeSoFormKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Column(
+                    children: [
+                      so.speedTest == null && so.progress != 'close_requested' ?
+                      Column(
+                        children: [
+                          const SizedBox(height: 10,),
+                          ListTile(
+                            title: TextFormField(
+                              validator: (value){
+                                if(value == null || value.isEmpty){
+                                  return 'Speed test performance in Mbps is required';
+                                }else if(value.contains(' ')){
+                                  return 'Invalid input';
+                                }
+                              },
+                              controller: _speedTestCt,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Speed Test (Mbps) *",
+                                hintText: 'Enter speed test performance (Mbps)',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ) : ListTile(
+                        title: Text('Speed Test:'),
+                        subtitle: Text(so.speedTest ?? '-'),
+                      ),
+                      so.rgwSn == null && so.progress != 'close_requested' ?
+                      Column(
+                        children: [
+                          const SizedBox(height: 20,),
+                          ListTile(
+                            title: TextFormField(
+                              validator: (value){
+                                if(value == null || value.isEmpty){
+                                  return 'RGW Serial Number required';
+                                }else if(value.contains(' ')){
+                                  return 'Invalid input';
+                                }
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "RGW Serial Number *",
+                                hintText: 'Enter RGW serial number',
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.camera_alt_outlined),
+                                  iconSize: 20,
+                                  color: Colors.indigo,
+                                  tooltip: 'Scan serial number barcode',
+                                  onPressed: () async {
+                                    String rgwSn;
+                                    rgwSn = await CameraUtils.getScanRes();
+                                    _rgwSnCt.text = rgwSn;
+                                  },
+                                ),
+                              ),
+                              controller: _rgwSnCt,
+                            ),
+                          ),
+                        ],
+                      ) : ListTile(
+                        title: Text('RGW SN :'),
+                        subtitle: Text(so.rgwSn ?? '-'),
+                      ),
+                      const SizedBox(height: 20,),
+                    ],
+                  ),
+                ),
+              ),
+              listImage.isNotEmpty || so.progress == 'attachment'
+                  ? newInstallationAttachments(context, widget.orderID, so.progress ?? 'close_requested', so.status ,listImage, refresh)
+                  : const SizedBox(height: 20,),
             ],
           ),
         ),

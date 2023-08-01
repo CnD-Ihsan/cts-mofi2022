@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,12 +23,12 @@ snackbarMessage(BuildContext context, String? message) {
         ],
       ),
       backgroundColor: Colors.green,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 3000),
     ),
   );
 }
 
-colorSnackbarMessage(BuildContext context, String? message, Color? color){
+colorSnackbarMessage(BuildContext context, String? message, Color? color) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
@@ -47,7 +49,7 @@ colorSnackbarMessage(BuildContext context, String? message, Color? color){
 
 alertMessage(BuildContext context, String message) {
   AlertDialog alert = AlertDialog(
-    contentPadding: EdgeInsets.only(top: 10),
+    contentPadding: const EdgeInsets.only(top: 10),
     content: ListTile(
       title: Text(message),
       leading: const Icon(Icons.error_outline),
@@ -82,7 +84,7 @@ alertMessage(BuildContext context, String message) {
   );
 }
 
-loadingScreen(BuildContext context){
+loadingScreen(BuildContext context) {
   return Future.delayed(Duration.zero, () {
     showDialog(
         context: context,
@@ -102,20 +104,52 @@ loadingScreen(BuildContext context){
   });
 }
 
+loadingScreenText(BuildContext context, String msg, String? sub) {
+  return Future.delayed(Duration.zero, () {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Container(
+                //     margin: const EdgeInsets.only(left: 7),
+                //     child: Text(msg)),
+                ListTile(
+                  title: Text(msg),
+                  subtitle: sub != null ? Text(sub ?? '') : null,
+                  leading: const CircularProgressIndicator(),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                // const SizedBox(
+                //   height: 20,
+                // ),
+                // const LinearProgressIndicator(),
+              ],
+            ),
+          );
+        });
+  });
+}
+
 phonePromptDialog(BuildContext context, String contact) {
   AlertDialog alert = AlertDialog(
     title: const Text('Contact Customer'),
     insetPadding: EdgeInsets.zero,
     contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-    content: Text(
-        'Carrier charges might apply. Proceed?'),
+    content: const Text('Carrier charges might apply. Proceed?'),
     actions: <Widget>[
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Container(
             child: TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.red),),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.red),
+              ),
               onPressed: () async {
                 Navigator.pop(context);
               },
@@ -125,7 +159,7 @@ phonePromptDialog(BuildContext context, String contact) {
             child: const Text('Confirm'),
             onPressed: () async {
               final Uri url = Uri.parse('tel:$contact');
-              if(await canLaunchUrl(url)){
+              if (await canLaunchUrl(url)) {
                 launchUrl(url);
               }
             },
@@ -145,37 +179,42 @@ phonePromptDialog(BuildContext context, String contact) {
 
 whatsappPromptDialog(BuildContext context, String contact) {
   AlertDialog alert = AlertDialog(
-    title: const Center(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 48,)),
+    title: const Center(
+        child: FaIcon(
+      FontAwesomeIcons.whatsapp,
+      color: Colors.green,
+      size: 48,
+    )),
     // contentPadding: EdgeInsets.fromLTRB(24, 12, 0, 0),
     insetPadding: EdgeInsets.zero,
     contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
     alignment: Alignment.center,
-    content: const Text(
-        'Opening external application. Proceed?'
-    ),
+    content: const Text('Opening external application. Proceed?'),
     actions: <Widget>[
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-        TextButton(
-          child: const Text('Cancel', style: TextStyle(color: Colors.red),),
-          onPressed: () async {
-            Navigator.pop(context);
-          },
-        ),
-        TextButton(
-          child: const Text('Confirm'),
-          onPressed: () async {
-            Navigator.pop(context);
-            final Uri url = Uri.parse('https://wa.me/$contact');
-            if(await canLaunchUrl(url)){
-              launchUrl(url, mode: LaunchMode.externalApplication);
-            }
-          },
-        ),
-      ],)
-
-
+          TextButton(
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.red),
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('Confirm'),
+            onPressed: () async {
+              Navigator.pop(context);
+              final Uri url = Uri.parse('https://wa.me/$contact');
+              if (await canLaunchUrl(url)) {
+                launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+        ],
+      )
     ],
   );
   showDialog(
@@ -223,7 +262,8 @@ mapPromptDialog(BuildContext context, String address) {
   );
 }
 
-imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, String) refresh) {
+imagePickerPrompt(BuildContext context, String type, num woId,
+    Function(Map, String) refresh) {
   AlertDialog alert = AlertDialog(
     title: const Text('Select image source'),
     content: Column(
@@ -242,20 +282,26 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
             final XFile? image = await ImagePicker()
                 .pickImage(source: ImageSource.camera, imageQuality: 25);
             if (image!.path.isNotEmpty) {
-              try{
+              try {
                 loadingScreen(context);
-                refresh(await WorkOrderApi.uploadImgAttachment(type, image, woId), 'upload');
-              }catch(e){
+                refresh(
+                    await WorkOrderApi.uploadImgAttachment(type, image, woId),
+                    'upload');
+              } catch (e) {
                 print(e);
-                colorSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists', Colors.red);
+                colorSnackbarMessage(
+                    context,
+                    'Failed to upload image. Please contact admin if issue persists',
+                    Colors.red);
                 ok = false;
-              }finally{
-                if(ok){
+              } finally {
+                if (ok) {
                   // snackbarMessage(context, 'Image uploaded');
                 }
               }
             } else {
-              colorSnackbarMessage(context, 'No image was selected.', Colors.red);
+              colorSnackbarMessage(
+                  context, 'No image was selected.', Colors.red);
               return;
             }
           },
@@ -271,12 +317,18 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
             final List<XFile> image =
                 await ImagePicker().pickMultiImage(imageQuality: 25);
             if (image.isNotEmpty) {
-              try{
+              try {
                 loadingScreen(context);
-                refresh(await WorkOrderApi.uploadMultiImgAttachment(type, image, woId), 'upload');
-              }catch(e){
+                refresh(
+                    await WorkOrderApi.uploadMultiImgAttachment(
+                        type, image, woId),
+                    'upload');
+              } catch (e) {
                 print(e);
-                colorSnackbarMessage(context, 'Failed to upload image. Please contact admin if issue persists', Colors.red);
+                colorSnackbarMessage(
+                    context,
+                    'Failed to upload image. Please contact admin if issue persists',
+                    Colors.red);
               }
             } else {
               return;
@@ -295,9 +347,10 @@ imagePickerPrompt(BuildContext context, String type, num woId, Function(Map, Str
   );
 }
 
-deleteAttachment(BuildContext context, num woId, String img, Function(Map, String) refresh, String type) {
+deleteAttachment(BuildContext context, num woId, String img,
+    Function(Map, String) refresh, String type) {
   AlertDialog alert = AlertDialog(
-    titlePadding: EdgeInsets.fromLTRB(20, 20, 20, 5),
+    titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
     actionsPadding: EdgeInsets.zero,
     title: const ListTile(
       title: Text('Delete image?'),
@@ -320,15 +373,19 @@ deleteAttachment(BuildContext context, num woId, String img, Function(Map, Strin
             onPressed: () async {
               bool ok = true;
               Navigator.pop(context);
-              try{
+              try {
                 loadingScreen(context);
-                refresh(await WorkOrderApi.deleteImgAttachment(woId, img, type), 'delete');
-              }catch(e){
+                refresh(await WorkOrderApi.deleteImgAttachment(woId, img, type),
+                    'delete');
+              } catch (e) {
                 Navigator.pop(context);
-                colorSnackbarMessage(context, 'Failed to delete image. Please contact admin if issue persists', Colors.red);
+                colorSnackbarMessage(
+                    context,
+                    'Failed to delete image. Please contact admin if issue persists',
+                    Colors.red);
                 ok = false;
-              }finally{
-                if(ok){
+              } finally {
+                if (ok) {
                   // snackbarMessage(context, 'Successfully deleted');
                 }
               }
@@ -345,4 +402,52 @@ deleteAttachment(BuildContext context, num woId, String img, Function(Map, Strin
       return alert;
     },
   );
+}
+
+Future<bool> resetPasswordPrompt(BuildContext context, String email) async {
+  Completer<bool> completer = Completer<bool>();
+  AlertDialog alert = AlertDialog(
+    iconColor: Colors.indigo,
+    icon: Icon(Icons.warning_amber, size:120,),
+    // title: Center(child: const Text('Confirm')),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+      Text('You are resetting password for:'),
+      SizedBox(height: 10,),
+      Text(email, style: const TextStyle(color: Colors.indigo),),
+    ],),
+    actionsAlignment: MainAxisAlignment.spaceEvenly,
+    actions: <Widget>[
+      TextButton(
+        style: ElevatedButton.styleFrom(
+            //primary: Colors.red,
+            ),
+        child: const Text(
+          'Cancel',
+          style: TextStyle(color: Colors.red),
+        ),
+        onPressed: () {
+          completer.complete(false);
+          Navigator.pop(context, false);
+        },
+      ),
+      TextButton(
+        child: const Text('Confirm'),
+        onPressed: () {
+          loadingScreenText(
+              context, "Resetting password...", "Please wait for a while");
+          completer.complete(true);
+          Navigator.pop(context, true);
+        },
+      ),
+    ],
+  );
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+  return completer.future;
 }
