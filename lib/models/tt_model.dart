@@ -29,7 +29,9 @@ class TroubleshootOrder {
   final String? rootCause;
   final String? subCause;
   final String? faultLocation;
+  final String? speedTest;
   final String? actionTaken;
+  final String? remark;
 
 
   TroubleshootOrder({
@@ -57,8 +59,10 @@ class TroubleshootOrder {
     this.ontSn,
     this.rootCause,
     this.subCause,
+    this.faultLocation,
+    this.speedTest,
     this.actionTaken,
-    this.faultLocation
+    this.remark,
   });
 
   factory TroubleshootOrder.fromJson(Map<TroubleshootOrder, dynamic> json){

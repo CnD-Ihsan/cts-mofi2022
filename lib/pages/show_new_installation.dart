@@ -221,7 +221,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
               const SizedBox(
                 height: 20,
               ),
-              so.status != 'Returned' || so.status != 'Cancelled' ?
+              so.status != 'Returned' && so.status != 'Cancelled' ?
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -268,7 +268,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                     ],
                   ),
                 ],
-              ) : const Divider(),
+              ) : const SizedBox(),
               const ListTile(
                 title: Text(
                   'Order Details',
@@ -293,7 +293,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       leading: const Icon(Icons.question_mark),
                       title: Text(
                         so.status + (so.progress == 'close_requested' ? ' (Close Requested)' : ''),
-                        style: textStyle(),
+                        style: so.status == "Returned" || so.status == "Cancelled" ? textStyle(customColor: Colors.red) : textStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -407,9 +407,9 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       ),
                       title: Text(
                         so.progress != 'activation'
-                            ? so.ontSn.toString()
+                            ? so.ontSn ?? "-"
                             : 'Not Activated',
-                        style: textStyle(),
+                        style:  so.ontSn == "Terminated" ? textStyle(customColor: Colors.red) : textStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -420,87 +420,110 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                   ],
                 ),
               ),
-              const ListTile(
-                title: Text(
-                  'Required Details',
-                  style: TextStyle(fontSize: 18),
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              Form(
-                key: _completeSoFormKey,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Column(
-                    children: [
-                      so.speedTest == null && so.progress != 'close_requested' ?
-                      Column(
+              so.status == 'Returned' ? Column(
+                children: [
+                  const ListTile(
+                    title: Text(
+                      'Returned Details',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      leading: const Icon(Icons.note_alt),
+                      title: const Text('Remark'),
+                      subtitle: Text(so.remark ?? '-'),
+                    ),
+                  ),
+                  const SizedBox(height: 12,),
+                ],
+              ) : so.progress != 'activation' ? Column(
+                children: [
+                  const ListTile(
+                    title: Text(
+                      'Required Details',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Form(
+                    key: _completeSoFormKey,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Column(
                         children: [
-                          const SizedBox(height: 10,),
-                          ListTile(
-                            title: TextFormField(
-                              validator: (value){
-                                if(value == null || value.isEmpty){
-                                  return 'Speed test performance in Mbps is required';
-                                }else if(value.contains(' ')){
-                                  return 'Invalid input';
-                                }
-                              },
-                              controller: _speedTestCt,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: "Speed Test (Mbps) *",
-                                hintText: 'Enter speed test performance (Mbps)',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ) : ListTile(
-                        title: Text('Speed Test:'),
-                        subtitle: Text(so.speedTest ?? '-'),
-                      ),
-                      so.rgwSn == null && so.progress != 'close_requested' ?
-                      Column(
-                        children: [
-                          const SizedBox(height: 20,),
-                          ListTile(
-                            title: TextFormField(
-                              validator: (value){
-                                if(value == null || value.isEmpty){
-                                  return 'RGW Serial Number required';
-                                }else if(value.contains(' ')){
-                                  return 'Invalid input';
-                                }
-                              },
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: "RGW Serial Number *",
-                                hintText: 'Enter RGW serial number',
-                                suffixIcon: IconButton(
-                                  icon: const Icon(Icons.camera_alt_outlined),
-                                  iconSize: 20,
-                                  color: Colors.indigo,
-                                  tooltip: 'Scan serial number barcode',
-                                  onPressed: () async {
-                                    String rgwSn;
-                                    rgwSn = await CameraUtils.getScanRes();
-                                    _rgwSnCt.text = rgwSn;
+                          so.speedTest == null && so.progress != 'close_requested' ?
+                          Column(
+                            children: [
+                              const SizedBox(height: 10,),
+                              ListTile(
+                                title: TextFormField(
+                                  validator: (value){
+                                    if(value == null || value.isEmpty){
+                                      return 'Speed test performance in Mbps is required';
+                                    }else if(value.contains(' ')){
+                                      return 'Invalid input';
+                                    }
                                   },
+                                  controller: _speedTestCt,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Speed Test (Mbps) *",
+                                    hintText: 'Enter speed test performance (Mbps)',
+                                  ),
                                 ),
                               ),
-                              controller: _rgwSnCt,
-                            ),
+                            ],
+                          ) : ListTile(
+                            title: Text('Speed Test:'),
+                            subtitle: Text(so.speedTest ?? '-'),
                           ),
+                          so.rgwSn == null && so.progress != 'close_requested' ?
+                          Column(
+                            children: [
+                              const SizedBox(height: 20,),
+                              ListTile(
+                                title: TextFormField(
+                                  validator: (value){
+                                    if(value == null || value.isEmpty){
+                                      return 'RGW Serial Number required';
+                                    }else if(value.contains(' ')){
+                                      return 'Invalid input';
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    labelText: "RGW Serial Number *",
+                                    hintText: 'Enter RGW serial number',
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.camera_alt_outlined),
+                                      iconSize: 20,
+                                      color: Colors.indigo,
+                                      tooltip: 'Scan serial number barcode',
+                                      onPressed: () async {
+                                        String rgwSn;
+                                        rgwSn = await CameraUtils.getScanRes();
+                                        _rgwSnCt.text = rgwSn;
+                                      },
+                                    ),
+                                  ),
+                                  controller: _rgwSnCt,
+                                ),
+                              ),
+                            ],
+                          ) : ListTile(
+                            title: Text('RGW SN :'),
+                            subtitle: Text(so.rgwSn ?? '-'),
+                          ),
+                          const SizedBox(height: 20,),
                         ],
-                      ) : ListTile(
-                        title: Text('RGW SN :'),
-                        subtitle: Text(so.rgwSn ?? '-'),
                       ),
-                      const SizedBox(height: 20,),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                ],
+              ) : const SizedBox(),
               listImage.isNotEmpty || so.progress == 'attachment'
                   ? newInstallationAttachments(context, widget.orderID, so.progress ?? 'close_requested', so.status ,listImage, refresh)
                   : const SizedBox(height: 20,),
@@ -511,8 +534,8 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
     );
   }
 
-  textStyle() {
-    return const TextStyle(fontSize: 14, color: Colors.black87);
+  textStyle({Color customColor = Colors.black87}) {
+    return TextStyle(fontSize: 14, color: customColor);
   }
 
   Future<void> _pullRefresh() async {

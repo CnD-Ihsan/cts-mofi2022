@@ -34,6 +34,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   final TextEditingController _rootCause = TextEditingController();
   final TextEditingController _subCause = TextEditingController();
   final TextEditingController _faultLocation = TextEditingController();
+  final TextEditingController _speedTest = TextEditingController();
   final TextEditingController _actionTaken = TextEditingController();
 
   @override
@@ -47,6 +48,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     _rootCause.dispose();
     _subCause.dispose();
     _faultLocation.dispose();
+    _speedTest.dispose();
     _actionTaken.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -72,16 +74,19 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
       return FloatingActionButton.extended(
         onPressed: () async => {
           // alertMessage(context, 'Submit order completion?'),
+          loadingScreen(context),
           requestVerification = await WorkOrderApi.ttCompleteOrder(
               tt.ttId,
               _rootCause.value.text,
               _subCause.value.text,
               _faultLocation.value.text,
+              _speedTest.value.text,
               _actionTaken.value.text),
+          Navigator.pop(context),
           if (!requestVerification.containsKey('error'))
             {
               snackbarMessage(context, 'Verification request submitted!'),
-              setState(() {})
+              _pullRefresh(),
             }
           else
             {
@@ -120,6 +125,13 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     } catch (e) {
       print(e);
     }
+
+    _rootCause.text = tt.rootCause ?? '';
+    _subCause.text = tt.subCause ?? '';
+    _faultLocation.text = tt.faultLocation ?? '';
+    _speedTest.text = tt.speedTest ?? '';
+    _actionTaken.text = tt.actionTaken ?? '';
+
     if (mounted) {
       setState(() {});
       Navigator.pop(context); //Pop the loadingScreen(context);
@@ -142,6 +154,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
 
   updateActionButton() {
     if (_rootCause.value.text.isNotEmpty &&
+        _speedTest.value.text.isNotEmpty &&
         _actionTaken.value.text.isNotEmpty) {
       tt.progress = 'attachment';
       if (listImage['sign'] != null && listImage['speedtest'] != null) {
@@ -221,7 +234,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
               const SizedBox(
                 height: 20,
               ),
-              tt.status != 'Returned' || tt.status != 'Cancelled'
+              tt.status != 'Returned' && tt.status != 'Cancelled'
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -317,7 +330,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         ),
                       ],
                     )
-                  : const Divider(),
+                  : const SizedBox(),
               const ListTile(
                 title: Text(
                   'Order Details',
@@ -345,7 +358,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                             (tt.progress == 'close_requested'
                                 ? ' (Close Requested)'
                                 : ''),
-                        style: textFieldStyle(),
+                        style: tt.status == "Returned" || tt.status == "Cancelled" ? textFieldStyle(customColor: Colors.red) : textFieldStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -434,7 +447,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         tt.progress != 'activation'
                             ? tt.ontSn.toString()
                             : 'Not Activated',
-                        style: textFieldStyle(),
+                        style: tt.ontSn == "Terminated" ? textFieldStyle(customColor: Colors.red) : textFieldStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -476,13 +489,17 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
               ),
               tt.status != 'Returned' && tt.status != 'Cancelled' ? Column(
                 children: [
+                  const SizedBox(height: 20,),
                   const ListTile(
                     title: Text(
                       'Troubleshooting Details',
                       style: TextStyle(fontSize: 18),
                       textAlign: TextAlign.start,
                     ),
+                    subtitle: Text('Fill in all required (*) fields and attachments to proceed.'),
+                    subtitleTextStyle: TextStyle(wordSpacing: 0.5),
                   ),
+                  const SizedBox(height: 20,),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Column(
@@ -501,6 +518,10 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         ListTile(
                             title: const Text("Fault Location"),
                             subtitle: Text(tt.faultLocation ?? "-")
+                        ),
+                        ListTile(
+                            title: const Text("Speed Test"),
+                            subtitle: Text(tt.speedTest ?? "-")
                         ),
                         ListTile(
                             title: const Text("Action Taken"),
@@ -544,6 +565,17 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         ),
                         const SizedBox(height: 20),
                         ListTile(
+                          title: const Text("Speed Test *"),
+                          subtitle: TextField(
+                            controller: _speedTest,
+                            onChanged: (speedTest) => {updateActionButton()},
+                            style: textFieldStyle(),
+                            textAlign: TextAlign.start,
+                            decoration: textFieldDeco("Enter speed test result"),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ListTile(
                           title: const Text("Action Taken *"),
                           subtitle: TextField(
                             controller: _actionTaken,
@@ -563,7 +595,26 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                     ),
                   ),
                 ],
-              ): const SizedBox(height: 0,),
+              ):tt.status == "Returned" ? Column(
+                children: [
+                  const ListTile(
+                    title: Text(
+                      'Returned Details',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      leading: const Icon(Icons.note_alt),
+                      title: const Text('Remark'),
+                      subtitle: Text(tt.remark ?? '-'),
+                    ),
+                  ),
+                  const SizedBox(height: 12,),
+                ],
+              ) : const SizedBox(height: 0,),
               listImage.isEmpty && tt.progress == 'close_requested'
                   ? const SizedBox(height: 20,)
                   : troubleshootOrderAttachments(
@@ -576,14 +627,14 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   }
 
   Future<void> _pullRefresh() async {
-    TroubleshootOrder _tt = await WorkOrderApi.getTroubleshootOrder(widget.orderID);
+    TroubleshootOrder tempTT = await WorkOrderApi.getTroubleshootOrder(widget.orderID);
     setState(() {
-      tt = _tt;
+      tt = tempTT;
     });
   }
 
-  textFieldStyle() {
-    return const TextStyle(fontSize: 14, color: Colors.black87);
+  textFieldStyle({Color customColor = Colors.black87}) {
+    return TextStyle(fontSize: 14, color: customColor);
   }
 
   textFieldDeco(String hint) {

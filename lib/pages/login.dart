@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:wfm/pages/list_orders.dart';
-import 'package:wfm/api/login_api.dart';
+import 'package:wfm/api/auth_api.dart';
 
 class Login extends StatelessWidget {
   const Login({Key? key}) : super(key: key);
@@ -180,7 +180,7 @@ class __FormContentState extends State<_FormContent> {
                   if (_formKey.currentState?.validate() ?? false) {
                     showLoaderDialog(context);
                     loginResponse =
-                        await LoginApi.loginRequest(emController.text, pwController.text);
+                        await AuthApi.loginRequest(emController.text, pwController.text);
                     await Future.delayed(const Duration(milliseconds: 800));
                     if (!mounted) return;
                     Navigator.pop(context);

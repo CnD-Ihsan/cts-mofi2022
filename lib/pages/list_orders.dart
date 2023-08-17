@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wfm/api/auth_api.dart';
 import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
+import 'package:wfm/pages/admin_show_new_installation.dart';
+import 'package:wfm/pages/admin_show_troubleshoot_order.dart';
 import 'package:wfm/pages/user_screens.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
@@ -22,7 +25,11 @@ class WorkOrders extends StatefulWidget {
 class _WorkOrdersState extends State<WorkOrders> {
   var ctime;
   DateTimeRange? _dtrFilter;
-  late String user = "-", email = "-", token = "-", role = "-", organization = "-"; //user info
+  late String user = "-",
+      email = "-",
+      token = "-",
+      role = "-",
+      organization = "-"; //user info
 
   final ValueNotifier<Map<String, String?>> filterNotifier = ValueNotifier({
     'type': 'All Orders',
@@ -68,7 +75,7 @@ class _WorkOrdersState extends State<WorkOrders> {
 
   getPrefs() async {
     prefs = await SharedPreferences.getInstance();
-    user =  prefs.getString('user') ?? 'Unauthorized';
+    user = prefs.getString('user') ?? 'Unauthorized';
     email = prefs.getString('email') ?? 'Unauthorized';
     token = prefs.getString('token') ?? '';
     role = prefs.getString('role') ?? '';
@@ -93,7 +100,10 @@ class _WorkOrdersState extends State<WorkOrders> {
           autofocus: false,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            label: Text(filterNotifier.value['type'] ?? "e", style: TextStyle(color: Colors.white),),
+            label: Text(
+              filterNotifier.value['type'] ?? "e",
+              style: const TextStyle(color: Colors.white),
+            ),
             hintText: "Search order",
             hintStyle: const TextStyle(color: Colors.white),
             border: InputBorder.none,
@@ -251,7 +261,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           ElevatedButton(
-                              style: ButtonStyle(),
+                              style: const ButtonStyle(),
                               onPressed: () {
                                 dateFilterNotifier.value['singleDate'] = null;
                                 dateFilterNotifier.value['startDate'] = null;
@@ -272,6 +282,11 @@ class _WorkOrdersState extends State<WorkOrders> {
       drawer: Drawer(
         child: Column(
           children: [
+            // UserAccountsDrawerHeader(
+            //     accountName: Text(user),
+            //     accountEmail: Text(widget.email),
+            //     currentAccountPicture: CircleAvatar(),
+            // ),
             Container(
               height: 230,
               decoration: const BoxDecoration(
@@ -299,8 +314,11 @@ class _WorkOrdersState extends State<WorkOrders> {
                 ],
               ),
             ),
-            const SizedBox(height: 12,),
-            setFilter('All Orders', 'type', const Icon(Icons.assignment_outlined)),
+            const SizedBox(
+              height: 12,
+            ),
+            setFilter(
+                'All Orders', 'type', const Icon(Icons.assignment_outlined)),
             setFilter('New Installation', 'type',
                 const Icon(Icons.add_business_outlined)),
             setFilter('Troubleshoot', 'type', const Icon(Icons.build)),
@@ -313,20 +331,24 @@ class _WorkOrdersState extends State<WorkOrders> {
             // ),
             const Spacer(),
             const Divider(),
-            role == 'Admin' ? ListTile(
-              title: const Text('User Management'),
-              leading: const Icon(Icons.person),
-              onTap: () => {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      settings: const RouteSettings(
-                        name: "/listUsers",
+            role == 'Admin'
+                ? ListTile(
+                    title: const Text('User Management'),
+                    leading: const Icon(Icons.person),
+                    onTap: () => {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            settings: const RouteSettings(
+                              name: "/listUsers",
+                            ),
+                            builder: (context) => UsersScreen(
+                                  token: token,
+                                )),
                       ),
-                      builder: (context) => UsersScreen(token: token,)),
-                ),
-              },
-            ) : const SizedBox(),
+                    },
+                  )
+                : const SizedBox(),
             ListTile(
               title: const Text('Update Password'),
               leading: const Icon(Icons.person),
@@ -347,18 +369,26 @@ class _WorkOrdersState extends State<WorkOrders> {
               onTap: () async {
                 loadingScreen(context);
                 await Future.delayed(const Duration(seconds: 1), () {});
-                final SharedPreferences prefs =
-                    await SharedPreferences.getInstance();
-                await prefs.clear();
-                if (mounted) {
-                  colorSnackbarMessage(context, 'Logged out', Colors.green);
-                  Navigator.pushReplacement<void, void>(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => const Landing(),
-                    ),
-                  );
+                if(await AuthApi.logOut(email)){
+                  final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  if (mounted) {
+                    colorSnackbarMessage(context, 'Account logged out', Colors.green);
+                    Navigator.pushReplacement<void, void>(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => const Landing(),
+                      ),
+                    );
+                  }
+                }else{
+                  if (mounted) {
+                    Navigator.pop(context);
+                    colorSnackbarMessage(context, 'Log out failed!', Colors.red);
+                  }
                 }
+
               },
             ),
             const SizedBox(
@@ -369,15 +399,15 @@ class _WorkOrdersState extends State<WorkOrders> {
       ),
       body: WillPopScope(
         onWillPop: () {
-          if(FocusScope.of(context).hasFocus){
+          if (FocusScope.of(context).hasFocus) {
             FocusScope.of(context).unfocus();
             return Future.value(false);
           }
-          if(_scaffoldKey.currentState!.isDrawerOpen){
+          if (_scaffoldKey.currentState!.isDrawerOpen) {
             _scaffoldKey.currentState!.closeDrawer();
             return Future.value(false);
           }
-          if(_scaffoldKey.currentState!.isEndDrawerOpen){
+          if (_scaffoldKey.currentState!.isEndDrawerOpen) {
             _scaffoldKey.currentState!.closeEndDrawer();
             return Future.value(false);
           }
@@ -399,7 +429,6 @@ class _WorkOrdersState extends State<WorkOrders> {
             child: FutureBuilder<List<WorkOrder>>(
                 future: _workOrderList,
                 builder: (context, snapshot) {
-                  print("na load lg dy");
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(),
@@ -466,71 +495,155 @@ class _WorkOrdersState extends State<WorkOrders> {
                           }
 
                           if (wo.type != 'Troubleshoot') {
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      settings: const RouteSettings(
-                                        name: "/showServiceOrder",
-                                      ),
-                                      builder: (context) => ShowServiceOrder(
-                                            orderID: wo.woId,
-                                          )),
-                                );
-                              },
-                              child: CustomListItemTwo(
-                                thumbnail: Image.asset(
-                                  'assets/img/logo/$logo.png',
-                                  fit: BoxFit.fitWidth,
+                            if (role == 'Admin') {
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        settings: const RouteSettings(
+                                          name: "/adminShowServiceOrder",
+                                        ),
+                                        builder: (context) =>
+                                            AdminShowServiceOrder(
+                                              orderID: wo.woId,
+                                            )),
+                                  );
+                                },
+                                onLongPress: () async {
+                                  await Clipboard.setData(
+                                      ClipboardData(text: wo.woName));
+                                },
+                                child: CustomListItemTwo(
+                                  thumbnail: Image.asset(
+                                    'assets/img/logo/$logo.png',
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                                  title: wo.woName,
+                                  subtitle: wo.address,
+                                  group: '${wo.type} (${wo.status})',
+                                  date: wo.date ?? 'Unassigned',
+                                  time: wo.time ?? 'Unassigned',
                                 ),
-                                title: wo.woName,
-                                subtitle: wo.address,
-                                group: '${wo.type} (${wo.status})',
-                                date: wo.date ?? 'Unassigned',
-                                time: wo.time ?? 'Unassigned',
-                              ),
-                            );
+                              );
+                            } else {
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        settings: const RouteSettings(
+                                          name: "/showServiceOrder",
+                                        ),
+                                        builder: (context) => ShowServiceOrder(
+                                              orderID: wo.woId,
+                                            )),
+                                  );
+                                },
+                                child: CustomListItemTwo(
+                                  thumbnail: Image.asset(
+                                    'assets/img/logo/$logo.png',
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                                  title: wo.woName,
+                                  subtitle: wo.address,
+                                  group: '${wo.type} (${wo.status})',
+                                  date: wo.date ?? 'Unassigned',
+                                  time: wo.time ?? 'Unassigned',
+                                ),
+                              );
+                            }
                           } else {
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      settings: const RouteSettings(
-                                        name: "/show",
-                                      ),
-                                      builder: (context) =>
-                                          ShowTroubleshootOrder(
-                                            orderID: wo.woId,
-                                          )),
-                                );
-                              },
-                              child: CustomListItemTwo(
-                                thumbnail: Image.asset(
-                                  'assets/img/logo/$logo.png',
-                                  fit: BoxFit.fitWidth,
+                            if (role == 'Admin') {
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        settings: const RouteSettings(
+                                          name: "/show",
+                                        ),
+                                        builder: (context) =>
+                                            AdminShowTroubleshootOrder(
+                                              orderID: wo.woId,
+                                            )),
+                                  );
+                                },
+                                onLongPress: () async {
+                                  await Clipboard.setData(
+                                      ClipboardData(text: wo.woName));
+                                },
+                                child: CustomListItemTwo(
+                                  thumbnail: Image.asset(
+                                    'assets/img/logo/$logo.png',
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                                  title: wo.woName,
+                                  subtitle: wo.address,
+                                  group: '${wo.type} (${wo.status})',
+                                  date: wo.date ?? 'Unassigned',
+                                  time: wo.time ?? 'Unassigned',
                                 ),
-                                title: wo.woName,
-                                subtitle: wo.address,
-                                group: '${wo.type} (${wo.status})',
-                                date: wo.date ?? 'Unassigned',
-                                time: wo.time ?? 'Unassigned',
-                              ),
-                            );
+                              );
+                            } else {
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        settings: const RouteSettings(
+                                          name: "/show",
+                                        ),
+                                        builder: (context) =>
+                                            ShowTroubleshootOrder(
+                                              orderID: wo.woId,
+                                            )),
+                                  );
+                                },
+                                child: CustomListItemTwo(
+                                  thumbnail: Image.asset(
+                                    'assets/img/logo/$logo.png',
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                                  title: wo.woName,
+                                  subtitle: wo.address,
+                                  group: '${wo.type} (${wo.status})',
+                                  date: wo.date ?? 'Unassigned',
+                                  time: wo.time ?? 'Unassigned',
+                                ),
+                              );
+                            }
                           }
                         },
                       ),
                     );
                   } else if (snapshot.hasError) {
-                    return const Center(
-                      child: Text('Error loading order',
-                          style: TextStyle(color: Colors.red)),
-                    );
+                    return RefreshIndicator(
+                        onRefresh: _pullRefresh,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height - 100,
+                              child: const Text('Error loading order',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ));
                   } else {
-                    return const Center(
-                      child: Text("Empty order"),
-                    );
+                    return RefreshIndicator(
+                        onRefresh: _pullRefresh,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          children: [
+                            SizedBox(
+                                height: MediaQuery.of(context).size.height - 100,
+                                child: const Center(child: Text('Empty order'))
+                            ),
+                          ],
+                        ));
                   }
                 })),
       ),
@@ -538,9 +651,8 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   Future<void> _pullRefresh() async {
-    List<WorkOrder> refreshList = await WorkOrderApi.getWorkOrderList();
     setState(() {
-      list = refreshList;
+      _workOrderList = _fetchWorkOrders();
     });
   }
 }

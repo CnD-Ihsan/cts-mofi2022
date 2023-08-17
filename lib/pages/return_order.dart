@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:wfm/api/work_order_api.dart';
-import 'package:wfm/models/work_order_model.dart';
-import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
 class ReturnOrder extends StatefulWidget {
@@ -22,15 +20,15 @@ class ReturnOrder extends StatefulWidget {
 }
 
 class _ReturnOrderState extends State<ReturnOrder> {
-  String returnType = 'Customer Unavailable';
-  String remarks = '';
+  String returnType = '-';
+  String remark = '';
   List<XFile?> listImage = [];
   List<String> listReturnTypes = [
-    'Customer Unavailable',
-    'Wrong Address',
-    'Activation Failure',
-    'Technical Issues',
-    'Other'
+    '-',
+    'Due to CT Sabah',
+    'Due to Customer',
+    'Due to ISP',
+    'Due to Wrong Address',
   ];
   var response;
 
@@ -58,9 +56,9 @@ class _ReturnOrderState extends State<ReturnOrder> {
 
   @override
   void initState() {
-    if(widget.type == "TT"){
-      listReturnTypes.remove('Activation Failure');
-    }
+    // if(widget.type == "TT"){
+    //   listReturnTypes.remove('Activation Failure');
+    // }
     _pageController = PageController(initialPage: _index);
     super.initState();
   }
@@ -82,9 +80,14 @@ class _ReturnOrderState extends State<ReturnOrder> {
                 const SizedBox(height: 16),
                 const Text('Return Type'),
                 const SizedBox(height: 8),
-                DropdownButton<String>(
+                DropdownButtonFormField<String>(
                   key: const Key('returnTypeDropdown'),
                   value: returnType,
+                  validator: (value){
+                    if(value == '-' || value == null){
+                      return 'Please select a return type';
+                    }
+                  },
                   onChanged: (value) {
                     setState(() {
                       returnType = value!;
@@ -98,21 +101,22 @@ class _ReturnOrderState extends State<ReturnOrder> {
                   }).toList(),
                 ),
                 const SizedBox(height: 32),
-                const Text('Remarks *'),
+                const Text('Remark *'),
                 const SizedBox(height: 8),
                 TextFormField(
+                  maxLines: 4,
                   controller: remarkController,
                   onSaved: (input) =>
-                      remarkController.text = input ?? "Empty remarks",
+                      remarkController.text = input ?? "Empty remark",
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Remarks required!';
+                      return 'Remark required!';
                     }
                     return null;
                   },
                   decoration: const InputDecoration(
-                      labelText: 'Enter remarks',
-                      // hintText: 'Enter remarks',
+                      labelText: 'Enter remark',
+                      // hintText: 'Enter remark',
                       border: UnderlineInputBorder()),
                 ),
                 const SizedBox(height: 32),

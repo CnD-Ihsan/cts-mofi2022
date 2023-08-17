@@ -298,9 +298,9 @@ class _UpdatePasswordState extends State<UpdatePassword> {
                   height: 20,
                 ),
                 ElevatedButton(onPressed: () async {
-                  showLoaderDialog(context);
-                  await Future.delayed(const Duration(milliseconds: 1400));
                   if (_updatePwFormKey.currentState?.validate() ?? false) {
+                    showLoaderDialog(context);
+                    await Future.delayed(const Duration(milliseconds: 1400));
                     var response = await UserApi.updatePassword(
                         token,
                         widget.userEmail,
@@ -321,10 +321,6 @@ class _UpdatePasswordState extends State<UpdatePassword> {
                       }else{
                         colorSnackbarMessage(context, response['failed'], Colors.red);
                       }
-                    }
-                  }else{
-                    if(mounted){
-                      Navigator.pop(context);
                     }
                   }
                 }, child: const Text("Update"))

@@ -87,7 +87,7 @@ class WorkOrderApi {
     if (data.containsKey('appointment_date') &&
         data['appointment_date'] != null) {
       DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
-      DateTime dt = DateTime.parse(data['appointment_date']);
+      DateTime dt = df.parse("${data['appointment_date']} ${data['appointment_time']}");
       tempDate = DateFormat.yMMMMd('en_US').format(dt).toString();
       tempTime = DateFormat.jm().format(dt).toString();
     }
@@ -104,14 +104,15 @@ class WorkOrderApi {
       img: await getImgAttachments(id),
       lat: double.parse(data['latitude']),
       lng: double.parse(data['longitude']),
-      ontSn: data['ont_sn'],
-      rgwSn: data['hc']['rgw_sn'],
-      speedTest: data['hc']['speed_test'],
+      ontSn: data['ont_sn'] ?? "Terminated",
+      rgwSn: data['hc'] != null ? data['hc']['rgw_sn'] : "Terminated",
+      speedTest: data['speed_test'],
       custContact: data['cust_contact'],
       custName: data['cust_name'],
       carrier: data['carrier'],
       speed: data['package'],
       progress: data['progress'],
+      remark: data['remark'],
     );
   }
 
@@ -142,11 +143,10 @@ class WorkOrderApi {
     if (data.containsKey('appointment_date') &&
         data['appointment_date'] != null) {
       DateFormat df = DateFormat("yyyy-MM-dd HH:mm:ss");
-      DateTime dt = DateTime.parse(data['appointment_date']);
+      DateTime dt = df.parse("${data['appointment_date']} ${data['appointment_time']}");
       tempDate = DateFormat.yMMMMd('en_US').format(dt).toString();
       tempTime = DateFormat.jm().format(dt).toString();
     }
-    print(data['status']);
 
     return TroubleshootOrder(
       ttId: data['tt_id'],
@@ -169,9 +169,10 @@ class WorkOrderApi {
 
       rootCause: data['root_cause'],
       subCause: data['sub_cause'],
+      speedTest: data['speed_test'],
       actionTaken: data['action_taken'],
       faultLocation: data['fault_location'],
-
+      remark: data['remark'],
     );
   }
 
@@ -208,14 +209,13 @@ class WorkOrderApi {
         temp = {"error" : "The provided string is not a valid JSON"};
       }
     }else{
-      print(response.body);
       temp = {"error" : "Status code: ${response.statusCode}"};
     }
 
     return temp;
   }
 
-  static ttCompleteOrder(num ttId, String rootCause, String? subCause, String? faultLocation, String actionTaken) async {
+  static ttCompleteOrder(num ttId, String rootCause, String? subCause, String? faultLocation, String speedTest,String actionTaken) async {
     var uri = Uri.parse('$wfmHost/work-orders/tt-request-complete');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -225,6 +225,7 @@ class WorkOrderApi {
       "root_cause": rootCause,
       "sub_cause": subCause,
       "fault_location": faultLocation,
+      "speed_test": speedTest,
       "action_taken": actionTaken
     };
 
@@ -251,18 +252,17 @@ class WorkOrderApi {
       temp = {"error" : "Status code: ${response.statusCode}"};
     }
 
-    print(jsonOnt);
     return temp;
   }
 
-  static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remarks, List<XFile?> listImage) async {
+  static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remark, List<XFile?> listImage) async {
     var uri = Uri.parse('$wfmHost/work-orders/return-order/$woId');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
     Map jsonOnt = {
       "returnType": returnType,
-      "remarks": remarks,
+      "remark": remark,
     };
 
     ftthType == 'SO'
@@ -287,10 +287,8 @@ class WorkOrderApi {
           return e;
         }
       }
-      return response;
-    }else{
-      return "Error: Failed to establish connection to server";
     }
+    return response;
   }
 
   static soReturnOrder(num woId, num soId, String? returnType, String? remarks, List<XFile?> listImage) async {
@@ -488,7 +486,6 @@ class WorkOrderApi {
     );
 
     Map temp = json.decode(response.body);
-    print(temp);
     return temp;
   }
 }

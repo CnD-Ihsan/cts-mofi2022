@@ -85,6 +85,8 @@ class _SubmitONTState extends State<SubmitONT> {
 
                 if (mounted) {
                   if (response.containsKey('success')) {
+                    setState(() {
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         // behavior: SnackBarBehavior.floating,
@@ -108,7 +110,7 @@ class _SubmitONTState extends State<SubmitONT> {
                           children: [
                             Expanded(
                                 child:
-                                Text('Error: ${response['error']}')),
+                                Text(response['error'])),
                             const Icon(
                               Icons.error_outline,
                               color: Colors.white,
@@ -116,7 +118,7 @@ class _SubmitONTState extends State<SubmitONT> {
                           ],
                         ),
                         backgroundColor: Colors.red,
-                        duration: const Duration(milliseconds: 7000),
+                        duration: const Duration(seconds: 10),
                       ),
                     );
                   }

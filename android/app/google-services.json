@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "411101286746",
+    "project_id": "mofi-f5adf",
+    "storage_bucket": "mofi-f5adf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411101286746:android:494cc2423f3e470bcc2363",
+        "android_client_info": {
+          "package_name": "net.ctsabah.wfm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "411101286746-5bp183vq0h3jv1glu72l0qkn28uectkm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPt69dsXS_HosfX00XmzwQzZUUD2OFrpo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "411101286746-5bp183vq0h3jv1glu72l0qkn28uectkm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "411101286746-asm8km8eh3e33f4k3tf0flt8gh3dgrq3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "net.ctsabah.momofifi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
