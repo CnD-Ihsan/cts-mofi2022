@@ -177,7 +177,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
             style: TextStyle(fontSize: 18),
             textAlign: TextAlign.start,
           ),
-          subtitle: progress != "close_requested" ? const Text('Use button to add image. Tap & hold image to delete them.') : null,
+          subtitle: progress != "close_requested" ? const Text('Use + button to add image. Tap & hold images to delete them.') : null,
         ),
         const ListTile(
           leading: Icon(Icons.assignment_return_outlined),
@@ -624,7 +624,7 @@ Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImag
             style: TextStyle(fontSize: 18),
             textAlign: TextAlign.start,
           ),
-          subtitle: progress != "close_requested" ? const Text('Use button to add image. Tap & hold image to delete them.') : null,
+          subtitle: progress != "close_requested" ? const Text('Use + button to add image. Tap & hold images to delete them.') : null,
         ),
         const ListTile(
           leading: Icon(Icons.assignment_return_outlined),
@@ -694,7 +694,7 @@ Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImag
             style: TextStyle(fontSize: 18),
             textAlign: TextAlign.start,
           ),
-          subtitle: progress != "close_requested" ? const Text('Use button to add image. Tap & hold image to delete them.') : null,
+          subtitle: progress != "close_requested" ? const Text('Use + button to add image. Tap & hold images to delete them.') : null,
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),

@@ -19,14 +19,13 @@ class TroubleshootOrder {
   String? date;
   String? time;
 
-  // final num soId;
-  // final String soType;
   final String custContact;
   final String custName;
   final String carrier;
-  final String speed;
+  final String? speed;
   final String? ontSn;
   final String? rootCause;
+  final String? ontChange;
   final String? subCause;
   final String? faultLocation;
   final String? speedTest;
@@ -55,9 +54,10 @@ class TroubleshootOrder {
     this.custContact = '',
     this.custName = '',
     this.carrier = '',
-    this.speed = '',
+    this.speed,
     this.ontSn,
     this.rootCause,
+    this.ontChange,
     this.subCause,
     this.faultLocation,
     this.speedTest,

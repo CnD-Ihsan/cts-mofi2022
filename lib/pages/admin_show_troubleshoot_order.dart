@@ -118,54 +118,6 @@ class _AdminShowTroubleshootOrderState extends State<AdminShowTroubleshootOrder>
     return Scaffold(
       appBar: AppBar(
         title: const Text("Troubleshoot Order"),
-        actions: tt.status != 'Pending' || tt.progress == 'close_requested'
-            ? null
-            : [
-                Builder(builder: (context) {
-                  return PopupMenuButton(
-                    icon: const Icon(Icons.menu),
-                    position: PopupMenuPosition.under,
-                    // color: themeColor,
-                    tooltip: "Order Actions",
-                    constraints: const BoxConstraints(),
-                    // onSelected: (newValue) { // add this property
-                    //   setState(() {
-                    //     // _value = newValue; // it gives the value which is selected
-                    //   });
-                    // },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        height: 30,
-                        value: 0,
-                        onTap: () async {
-                          await Future.delayed(const Duration(milliseconds: 10));
-                          if(mounted){
-                            final returnedOrder = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ReturnOrder(
-                                    woId: widget.orderID,
-                                    ftthId: tt.ttId,
-                                    type: "TT",
-                                    refresh: refresh,
-                                  )),
-                            );
-
-                            if(returnedOrder != null){
-                              await getAsync(returnedOrder as num);
-                              setState(() {});
-                            }
-                          }
-                        },
-                        child: const Text(
-                          "Return Order",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  );
-                })
-              ],
       ),
       body: RefreshIndicator(
         onRefresh: _pullRefresh,

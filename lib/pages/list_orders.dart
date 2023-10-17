@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,10 +47,57 @@ class _WorkOrdersState extends State<WorkOrders> {
   late SharedPreferences prefs;
   late Future<List<WorkOrder>> _workOrderList;
 
+  Future<void> initMessageHandling() async {
+    RemoteMessage? initialMessage =
+    await FirebaseMessaging.instance.getInitialMessage();
+
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage); //background message handling
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      num id = num.parse(message.data['id']);
+      showOrderSnackbar(context, message.data['type'], id, message.data['name']);
+    });
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    String type = message.data['type'];
+    num id = num.parse(message.data['id']);
+
+    if (type == 'SO') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            settings: const RouteSettings(
+              name: "/showServiceOrder",
+            ),
+            builder: (context) => ShowServiceOrder(
+              orderID: id,
+            )),
+      );
+    }else{
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            settings: const RouteSettings(
+              name: "/showTroubleshootOrder",
+            ),
+            builder: (context) =>
+                ShowTroubleshootOrder(
+                  orderID: id,
+                )),
+      );
+    }
+  }
+
   @override
   void initState() {
     getPrefs();
     _workOrderList = _fetchWorkOrders();
+    initMessageHandling();
     super.initState();
   }
 
@@ -59,14 +107,14 @@ class _WorkOrdersState extends State<WorkOrders> {
     super.dispose();
   }
 
-  setFilter(String value, String type, Icon icon) {
+  setFilter(String value, String filterType, Icon icon) {
     return ListTile(
       leading: icon,
       title: Text(value),
       selectedColor: Colors.indigo,
-      selected: filterNotifier.value[type] == value ? true : false,
+      selected: filterNotifier.value[filterType] == value ? true : false,
       onTap: () async {
-        filterNotifier.value[type] = value;
+        filterNotifier.value[filterType] = value;
         Navigator.pop(context);
         setState(() {});
       },
@@ -100,6 +148,8 @@ class _WorkOrdersState extends State<WorkOrders> {
           autofocus: false,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
+            suffixIcon: const Icon(Icons.search),
+            suffixIconColor: Colors.white,
             label: Text(
               filterNotifier.value['type'] ?? "e",
               style: const TextStyle(color: Colors.white),
@@ -122,6 +172,7 @@ class _WorkOrdersState extends State<WorkOrders> {
           },
         ),
         actions: [
+
           Builder(builder: (context) {
             return IconButton(
                 onPressed: () {
@@ -351,7 +402,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                 : const SizedBox(),
             ListTile(
               title: const Text('Update Password'),
-              leading: const Icon(Icons.person),
+              leading: const Icon(Icons.lock),
               onTap: () => {
                 Navigator.push(
                   context,
@@ -369,26 +420,7 @@ class _WorkOrdersState extends State<WorkOrders> {
               onTap: () async {
                 loadingScreen(context);
                 await Future.delayed(const Duration(seconds: 1), () {});
-                if(await AuthApi.logOut(email)){
-                  final SharedPreferences prefs =
-                  await SharedPreferences.getInstance();
-                  await prefs.clear();
-                  if (mounted) {
-                    colorSnackbarMessage(context, 'Account logged out', Colors.green);
-                    Navigator.pushReplacement<void, void>(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => const Landing(),
-                      ),
-                    );
-                  }
-                }else{
-                  if (mounted) {
-                    Navigator.pop(context);
-                    colorSnackbarMessage(context, 'Log out failed!', Colors.red);
-                  }
-                }
-
+                await logOut();
               },
             ),
             const SizedBox(
@@ -561,7 +593,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                     context,
                                     MaterialPageRoute(
                                         settings: const RouteSettings(
-                                          name: "/show",
+                                          name: "/adminShowTroubleshootOrder",
                                         ),
                                         builder: (context) =>
                                             AdminShowTroubleshootOrder(
@@ -592,7 +624,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                     context,
                                     MaterialPageRoute(
                                         settings: const RouteSettings(
-                                          name: "/show",
+                                          name: "/showTroubleshootOrder",
                                         ),
                                         builder: (context) =>
                                             ShowTroubleshootOrder(
@@ -651,8 +683,39 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   Future<void> _pullRefresh() async {
+    if(prefs.getString('user') == null){
+      colorSnackbarMessage(context, 'Forced log out!', Colors.red);
+      Navigator.pushReplacement<void, void>(
+        context,
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => const Landing(),
+        ),
+      );
+    }
     setState(() {
       _workOrderList = _fetchWorkOrders();
     });
+  }
+
+  Future<void> logOut() async{
+    if(await AuthApi.logOut(email)){
+      final SharedPreferences prefs =
+      await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (mounted) {
+        colorSnackbarMessage(context, 'Account logged out', Colors.green);
+        Navigator.pushReplacement<void, void>(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => const Landing(),
+          ),
+        );
+      }
+    }else{
+      if (mounted) {
+        Navigator.pop(context);
+        colorSnackbarMessage(context, 'Log out failed!', Colors.red);
+      }
+    }
   }
 }

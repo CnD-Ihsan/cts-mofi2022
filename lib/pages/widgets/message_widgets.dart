@@ -9,6 +9,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/pages/widgets/attachment_widget.dart';
 
+import '../show_troubleshoot_order.dart';
+
 snackbarMessage(BuildContext context, String? message) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -43,6 +45,58 @@ colorSnackbarMessage(BuildContext context, String? message, Color? color) {
       ),
       backgroundColor: color ?? Colors.green,
       duration: const Duration(milliseconds: 2500),
+    ),
+  );
+}
+
+showOrderSnackbar(BuildContext context, String type, num id, String woName) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      dismissDirection: DismissDirection.horizontal,
+      action: SnackBarAction(
+        label: 'Show',
+        textColor: Colors.white,
+        onPressed: () {
+          if (type == 'SO') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  settings: const RouteSettings(
+                    name: "/showServiceOrder",
+                  ),
+                  builder: (context) => ShowServiceOrder(
+                        orderID: id,
+                      )),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  settings: const RouteSettings(
+                    name: "/showTroubleshootOrder",
+                  ),
+                  builder: (context) => ShowTroubleshootOrder(
+                        orderID: id,
+                      )),
+            );
+          }
+        },
+      ),
+      content: Row(
+        children: [
+          const Icon(
+            Icons.error_outline,
+            color: Colors.white,
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+          Expanded(child: Text('You have a new work order: $woName')),
+        ],
+      ),
+      backgroundColor: Colors.indigoAccent,
+      duration: const Duration(milliseconds: 10000),
     ),
   );
 }
@@ -408,15 +462,24 @@ Future<bool> resetPasswordPrompt(BuildContext context, String email) async {
   Completer<bool> completer = Completer<bool>();
   AlertDialog alert = AlertDialog(
     iconColor: Colors.indigo,
-    icon: Icon(Icons.warning_amber, size:120,),
+    icon: const Icon(
+      Icons.warning_amber,
+      size: 120,
+    ),
     // title: Center(child: const Text('Confirm')),
     content: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-      Text('You are resetting password for:'),
-      SizedBox(height: 10,),
-      Text(email, style: const TextStyle(color: Colors.indigo),),
-    ],),
+        const Text('You are resetting password for:'),
+        const SizedBox(
+          height: 10,
+        ),
+        Text(
+          email,
+          style: const TextStyle(color: Colors.indigo),
+        ),
+      ],
+    ),
     actionsAlignment: MainAxisAlignment.spaceEvenly,
     actions: <Widget>[
       TextButton(
@@ -437,6 +500,128 @@ Future<bool> resetPasswordPrompt(BuildContext context, String email) async {
         onPressed: () {
           loadingScreenText(
               context, "Resetting password...", "Please wait for a while");
+          completer.complete(true);
+          Navigator.pop(context, true);
+        },
+      ),
+    ],
+  );
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+  return completer.future;
+}
+
+Future<bool> logOutUserPrompt(BuildContext context, String email) async {
+  Completer<bool> completer = Completer<bool>();
+  AlertDialog alert = AlertDialog(
+    iconColor: Colors.red,
+    icon: const Icon(
+      Icons.warning_amber_rounded,
+      size: 120,
+    ),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text('Force log out user?'),
+        const SizedBox(
+          height: 10,
+        ),
+        Text(
+          email,
+          style: const TextStyle(color: Colors.red),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        const Text(
+          "* This action might fail if their device is currently not connected to the internet.",
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    ),
+    actionsAlignment: MainAxisAlignment.spaceEvenly,
+    actions: <Widget>[
+      TextButton(
+        style: ElevatedButton.styleFrom(
+            //primary: Colors.red,
+            ),
+        child: const Text(
+          'Cancel',
+          style: TextStyle(color: Colors.red),
+        ),
+        onPressed: () {
+          completer.complete(false);
+          Navigator.pop(context, false);
+        },
+      ),
+      TextButton(
+        child: const Text('Confirm', style: TextStyle(color: Colors.indigo),),
+        onPressed: () {
+          loadingScreenText(
+              context, "Logging out user...", "Please wait for a while");
+          completer.complete(true);
+          Navigator.pop(context, true);
+        },
+      ),
+    ],
+  );
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+  return completer.future;
+}
+
+Future<bool> ontChangePrompt(BuildContext context) async {
+  Completer<bool> completer = Completer<bool>();
+  AlertDialog alert = AlertDialog(
+    iconColor: Colors.indigo,
+    icon: const Icon(
+      Icons.pending_actions,
+      size: 120,
+    ),
+    // title: Center(child: const Text('Confirm')),
+    content: const Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Changing ONT requires approval from CTS.', textAlign: TextAlign.center),
+        SizedBox(
+          height: 20,
+        ),
+        Text('Proceed?', textAlign: TextAlign.center,),
+      ],
+    ),
+    actionsAlignment: MainAxisAlignment.spaceEvenly,
+    actionsPadding: EdgeInsets.zero,
+    actions: <Widget>[
+      TextButton(
+        style: ElevatedButton.styleFrom(
+          //primary: Colors.red,
+        ),
+        child: const Text(
+          'Cancel',
+          style: TextStyle(color: Colors.red),
+        ),
+        onPressed: () {
+          completer.complete(false);
+          Navigator.pop(context, false);
+        },
+      ),
+      TextButton(
+        child: const Text('Confirm'),
+        onPressed: () {
+          loadingScreenText(
+              context, "Requesting approval...", "Please wait for a while");
           completer.complete(true);
           Navigator.pop(context, true);
         },

@@ -5,6 +5,8 @@ import 'package:wfm/api/user_api.dart';
 import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
+import '../api/auth_api.dart';
+
 class UsersScreen extends StatefulWidget {
   final String token;
   const UsersScreen({Key? key, required this.token}) : super(key: key);
@@ -38,30 +40,59 @@ class UsersScreenState extends State<UsersScreen> {
               itemCount: users.length,
               padding: const EdgeInsets.symmetric(vertical: 12),
               itemBuilder: (context, index) {
-                return ListTile(
+                return ExpansionTile(
                   title: Text(users[index].name),
                   subtitle: Text(users[index].email),
-                  trailing: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                  childrenPadding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: Border.all(color: Colors.transparent),
+                  children: <Widget>[
+                    Row(
+                      // mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: () async {
+                            bool confirm = await resetPasswordPrompt(
+                                context, users[index].email);
+                            if (confirm) {
+                              var response = await UserApi.resetPassword(
+                                  widget.token, users[index].email);
+                              if (mounted) {
+                                Navigator.pop(context);
+                                snackbarMessage(context, response['success']);
+                              }
+                            } else {
+                              return;
+                            }
+                          },
+                          child: const Text('Reset Password'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: () async {
+                            bool confirm = await logOutUserPrompt(
+                                context, users[index].email);
+                            if (confirm) {
+                              var response = await AuthApi.logOutUser(
+                                  widget.token, users[index].email);
+                              if (mounted) {
+                                Navigator.pop(context);
+                                snackbarMessage(context, 'Log out command sent!');
+                              }
+                            } else {
+                              return;
+                            }
+                          },
+                          child: const Text('Force Logout'),
+                        ),
+                      ],
                     ),
-                    onPressed: () async {
-                      bool confirm = await resetPasswordPrompt(
-                          context, users[index].email);
-                      if (confirm) {
-                        var response = await UserApi.resetPassword(
-                            widget.token, users[index].email);
-                        if (mounted) {
-                          Navigator.pop(context);
-                          snackbarMessage(context, response['success']);
-                        }
-                      } else {
-                        return;
-                      }
-                    },
-                    child: const Text('Reset Password'),
-                  ),
-                  isThreeLine: true,
+                  ],
                 );
               },
             );

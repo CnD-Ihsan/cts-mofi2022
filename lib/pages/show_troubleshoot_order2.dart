@@ -224,7 +224,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      tt.speed,
+                      tt.speed ?? "-",
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),
@@ -285,7 +285,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                     //   textAlign: TextAlign.start,
                     // ),
                     title: Text(
-                      tt.speed,
+                      tt.speed ?? "-",
                       style: textStyle(),
                       textAlign: TextAlign.start,
                     ),

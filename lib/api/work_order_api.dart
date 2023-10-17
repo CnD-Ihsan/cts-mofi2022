@@ -37,7 +37,7 @@ class WorkOrderApi {
 
         WorkOrder wo = WorkOrder(
           woId: data['wo_id'],
-          ftthId: data['service_order'],
+          ftthId: data['ftth_order_id'],
           woName: data['name'],
           status: data['status'],
           requestedBy: data['requested_by'],
@@ -136,6 +136,7 @@ class WorkOrderApi {
     );
 
     Map data = jsonDecode(response.body);
+    print(data);
 
     String? tempDate;
     String? tempTime;
@@ -168,6 +169,7 @@ class WorkOrderApi {
       progress: data['progress'],
 
       rootCause: data['root_cause'],
+      ontChange: data['ont_change'],
       subCause: data['sub_cause'],
       speedTest: data['speed_test'],
       actionTaken: data['action_taken'],
@@ -215,7 +217,7 @@ class WorkOrderApi {
     return temp;
   }
 
-  static ttCompleteOrder(num ttId, String rootCause, String? subCause, String? faultLocation, String speedTest,String actionTaken) async {
+  static ttCompleteOrder(num ttId, String rootCause, String? subCause, String? faultLocation, String speedTest, String actionTaken, String? ontChange, String? ontSn) async {
     var uri = Uri.parse('$wfmHost/work-orders/tt-request-complete');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -226,8 +228,12 @@ class WorkOrderApi {
       "sub_cause": subCause,
       "fault_location": faultLocation,
       "speed_test": speedTest,
-      "action_taken": actionTaken
+      "action_taken": actionTaken,
     };
+
+    if(ontChange == "Approved"){
+      jsonOnt["ont_sn"] = ontSn;
+    }
 
     final response = await http.post(
       uri,
@@ -240,19 +246,19 @@ class WorkOrderApi {
       body: jsonEncode(jsonOnt),
     );
 
-    Map temp = {};
-
-    if(response.statusCode >= 200 && response.statusCode <= 300){
-      try {
-        temp = json.decode(response.body);
-      } on FormatException catch (e) {
-        temp = {"error" : "The provided string is not a valid JSON"};
-      }
-    }else{
-      temp = {"error" : "Status code: ${response.statusCode}"};
+    Map tempMessage = {};
+print(response.body);
+    try {
+      tempMessage = json.decode(response.body);
+    } on FormatException catch (e) {
+      tempMessage = {"error" : "The provided string is not a valid JSON"};
     }
 
-    return temp;
+    if(response.statusCode < 200 || response.statusCode >= 300){
+      tempMessage = {"error" : "Error: ${tempMessage['errorMessage']}"};
+    }
+
+    return tempMessage;
   }
 
   static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remark, List<XFile?> listImage) async {
@@ -487,5 +493,28 @@ class WorkOrderApi {
 
     Map temp = json.decode(response.body);
     return temp;
+  }
+
+  static ontChangeRequest(num woId) async {
+    var uri = Uri.parse('$wfmHost/work-orders/tt-request-ont-change');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    Map jsonOnt = {
+      "wo_id" : woId,
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        // "useQueryString": "true",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode(jsonOnt),
+    );
+
+    return response;
   }
 }

@@ -36,6 +36,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   final TextEditingController _faultLocation = TextEditingController();
   final TextEditingController _speedTest = TextEditingController();
   final TextEditingController _actionTaken = TextEditingController();
+  final TextEditingController _ontChange = TextEditingController();
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     _faultLocation.dispose();
     _speedTest.dispose();
     _actionTaken.dispose();
+    _ontChange.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -73,7 +75,6 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     if (progress == 'completion') {
       return FloatingActionButton.extended(
         onPressed: () async => {
-          // alertMessage(context, 'Submit order completion?'),
           loadingScreen(context),
           requestVerification = await WorkOrderApi.ttCompleteOrder(
               tt.ttId,
@@ -81,18 +82,20 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
               _subCause.value.text,
               _faultLocation.value.text,
               _speedTest.value.text,
-              _actionTaken.value.text),
-          Navigator.pop(context),
-          if (!requestVerification.containsKey('error'))
-            {
+              _actionTaken.value.text,
+              tt.ontChange == "Approved" ? tt.ontChange : null,
+              tt.ontChange == "Approved" ? _ontChange.value.text : null
+          ),
+          if(mounted){
+            Navigator.pop(context),
+            if (!requestVerification.containsKey('error')){
               snackbarMessage(context, 'Verification request submitted!'),
               _pullRefresh(),
-            }
-          else
-            {
+            }else{
               colorSnackbarMessage(context,
-                  'Request error! ${requestVerification['error']}', Colors.red)
+                  'Request failed! ${requestVerification['error']}', Colors.red)
             }
+          }
         },
         label: const Text('Complete Order'),
         icon: const Icon(Icons.check_circle),
@@ -118,6 +121,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
 
   getAsync(num id) async {
     loadingScreen(context);
+    updateActionButton();
     try {
       prefs = await SharedPreferences.getInstance();
       tt = await WorkOrderApi.getTroubleshootOrder(id);
@@ -126,11 +130,12 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
       print(e);
     }
 
-    _rootCause.text = tt.rootCause ?? '';
-    _subCause.text = tt.subCause ?? '';
-    _faultLocation.text = tt.faultLocation ?? '';
-    _speedTest.text = tt.speedTest ?? '';
-    _actionTaken.text = tt.actionTaken ?? '';
+    _rootCause.text =  tt.rootCause ?? _rootCause.text;
+    _subCause.text = tt.subCause ?? _subCause.text;
+    _faultLocation.text = tt.faultLocation ?? _faultLocation.text;
+    _speedTest.text = tt.speedTest ?? _speedTest.text;
+    _actionTaken.text = tt.actionTaken ?? _actionTaken.text;
+    _ontChange.text = tt.ontSn ?? _ontChange.text;
 
     if (mounted) {
       setState(() {});
@@ -153,9 +158,11 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   }
 
   updateActionButton() {
-    if (_rootCause.value.text.isNotEmpty &&
-        _speedTest.value.text.isNotEmpty &&
-        _actionTaken.value.text.isNotEmpty) {
+    bool validCompletion = _rootCause.value.text.isNotEmpty && _speedTest.value.text.isNotEmpty && _actionTaken.value.text.isNotEmpty;
+    if(tt.ontChange == "Approved"){
+      validCompletion = validCompletion && _ontChange.text.isNotEmpty;
+    }
+    if (validCompletion) {
       tt.progress = 'attachment';
       if (listImage['sign'] != null && listImage['speedtest'] != null) {
         tt.progress = 'completion';
@@ -163,7 +170,6 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     } else {
       tt.progress = 'troubleshooting';
     }
-
     setState(() {});
   }
 
@@ -357,6 +363,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         tt.status +
                             (tt.progress == 'close_requested'
                                 ? ' (Close Requested)'
+                                : tt.ontChange == 'Pending' ? ' (Awaiting ONT Change Approval)'
                                 : ''),
                         style: tt.status == "Returned" || tt.status == "Cancelled" ? textFieldStyle(customColor: Colors.red) : textFieldStyle(),
                         textAlign: TextAlign.start,
@@ -490,14 +497,14 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
               tt.status != 'Returned' && tt.status != 'Cancelled' ? Column(
                 children: [
                   const SizedBox(height: 20,),
-                  const ListTile(
-                    title: Text(
+                  ListTile(
+                    title: const Text(
                       'Troubleshooting Details',
                       style: TextStyle(fontSize: 18),
                       textAlign: TextAlign.start,
                     ),
-                    subtitle: Text('Fill in all required (*) fields and attachments to proceed.'),
-                    subtitleTextStyle: TextStyle(wordSpacing: 0.5),
+                    subtitle: tt.status != "Completed" ? const Text('Fill in all required (*) fields and attachments to proceed.') : null,
+                    subtitleTextStyle: const TextStyle(wordSpacing: 0.5),
                   ),
                   const SizedBox(height: 20,),
                   Padding(
@@ -527,6 +534,10 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                             title: const Text("Action Taken"),
                             subtitle: Text(tt.actionTaken ?? "-")
                         ),
+                        if (tt.ontChange == "Approved") ListTile(
+                            title: const Text("New Device Serial Number"),
+                            subtitle: Text(tt.ontSn ?? "-")
+                        ),
                         SizedBox(
                           key: _scrollTroubleshootAttachmentKey,
                           height: 20,
@@ -537,6 +548,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                           title: const Text("Root Cause *"),
                           subtitle: TextField(
                             controller: _rootCause,
+                            enabled: tt.ontChange == "Pending" ? false : true,
                             onChanged: (rootCause) => {updateActionButton()},
                             style: textFieldStyle(),
                             textAlign: TextAlign.start,
@@ -548,6 +560,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                           title: const Text("Sub Cause"),
                           subtitle: TextField(
                             controller: _subCause,
+                            enabled: tt.ontChange == "Pending" ? false : true,
                             style: textFieldStyle(),
                             textAlign: TextAlign.start,
                             decoration: textFieldDeco("Enter sub cause"),
@@ -558,6 +571,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                           title: const Text("Fault Location"),
                           subtitle: TextField(
                             controller: _faultLocation,
+                            enabled: tt.ontChange == "Pending" ? false : true,
                             style: textFieldStyle(),
                             textAlign: TextAlign.start,
                             decoration: textFieldDeco("Enter fault location"),
@@ -565,9 +579,10 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         ),
                         const SizedBox(height: 20),
                         ListTile(
-                          title: const Text("Speed Test *"),
+                          title: const Text("Speed Test (Mbps) *"),
                           subtitle: TextField(
                             controller: _speedTest,
+                            enabled: tt.ontChange == "Pending" ? false : true,
                             onChanged: (speedTest) => {updateActionButton()},
                             style: textFieldStyle(),
                             textAlign: TextAlign.start,
@@ -579,14 +594,89 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                           title: const Text("Action Taken *"),
                           subtitle: TextField(
                             controller: _actionTaken,
+                            enabled: tt.ontChange == "Pending" ? false : true,
                             onChanged: (actionTaken) => {updateActionButton()},
                             style: textFieldStyle(),
                             textAlign: TextAlign.start,
                             decoration: textFieldDeco(
-                                "Enter actions taken to troubleshoot"),
+                                "Enter actions taken to troubleshoot."),
                             maxLines: 8,
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        if (tt.ontChange == null || tt.ontChange == "Rejected") Center(
+                          child: Column(
+                            children: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: tt.ontChange == "Rejected" ? Colors.redAccent : Colors.indigo, // Change this to the color you want
+                                ),
+                                onPressed: () async {
+                                  bool confirm = await ontChangePrompt(context);
+                                  if (confirm) {
+                                    var response = await WorkOrderApi.ontChangeRequest(widget.orderID);
+                                    if (mounted) {
+                                      Navigator.pop(context);
+                                      if(response.statusCode >= 200 && response.statusCode < 400){
+                                        snackbarMessage(context, 'ONT change approval requested!');
+                                        _pullRefresh();
+                                      }else{
+                                        colorSnackbarMessage(context,'ONT change request failed!', Colors.red);
+                                      }
+                                    }
+                                  }
+                                },
+                                child: Text(tt.ontChange == "Rejected" ? 'Resubmit ONT Change' : 'ONT Change'),
+                              ),
+                              const ListTile(
+                                leading: FaIcon(FontAwesomeIcons.circleInfo, color: Colors.black54,),
+                                title: Text("Use button above if ONT device was changed.", style: TextStyle(color: Colors.black54),),
+                                titleTextStyle: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        tt.ontChange == "Rejected" ?
+                        ListTile(
+                          leading: const Icon(Icons.warning_amber_outlined, color: Colors.redAccent,),
+                          title: const Text("Previous request was rejected!", style: TextStyle(color: Colors.redAccent),),
+                          subtitle: Text('Remark: ${tt.remark ?? 'N/A'}', style: const TextStyle(color: Colors.redAccent),),
+                        ) : const SizedBox(width: 0),
+                        if (tt.ontChange == "Approved") Center(
+                          child: ListTile(
+                            title: const Text("New ONT *"),
+                            subtitle: TextField(
+                              controller: _ontChange,
+                              onChanged: (actionTaken) => {updateActionButton()},
+                              // style: textFieldStyle(),
+                              textAlign: TextAlign.start,
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                hintText: 'Enter or scan serial number',
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.camera_alt_outlined),
+                                  iconSize: 20,
+                                  color: Colors.indigo,
+                                  tooltip: 'Scan serial number barcode',
+                                  onPressed: () async {
+                                    var ontSn = await CameraUtils.getScanRes();
+                                    setState(() {
+                                      ontSn = ontSn;
+                                      _ontChange.text = ontSn;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        tt.ontChange == "Pending" ?
+                        const Center(
+                          child: ElevatedButton(
+                            onPressed: null,
+                            child: Text('Awaiting Approval...'),
+                          ),
+                        ) : const SizedBox(width: 0),
                         SizedBox(
                           key: _scrollTroubleshootAttachmentKey,
                           height: 20,

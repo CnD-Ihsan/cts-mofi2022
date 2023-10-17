@@ -204,6 +204,31 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       },
                       child: const Text("Return Order", style: TextStyle(color: Colors.red),),
                     ),
+                    PopupMenuItem(
+                      height: 30,
+                      value: 0,
+                      onTap: () async {
+                        await Future.delayed(const Duration(milliseconds: 10));
+                        if(mounted){
+                          final returnedOrder = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ReturnOrder(
+                                  woId: widget.orderID,
+                                  ftthId: so.soId,
+                                  type: "SO",
+                                  refresh: refresh,
+                                )),
+                          );
+
+                          if(returnedOrder != null){
+                            await getAsync(returnedOrder as num);
+                            setState(() {});
+                          }
+                        }
+                      },
+                      child: const Text("Change ONT", style: TextStyle(color: Colors.black),),
+                    ),
                   ],
                 );
               }

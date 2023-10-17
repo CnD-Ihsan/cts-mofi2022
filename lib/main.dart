@@ -16,17 +16,33 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // make sure you call `initializeApp` before using other Firebase services.
   await Firebase.initializeApp();
   print("Handling a background message: ${message.messageId}");
+  print('Message also contained an action: ${message.data['action']}');
+  if(message.data['action'] == 'force_logout'){
+    // await logOut();
+  }
+}
+
+Future<void> _forceLogout() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  print("Clearing shared prefs...");
+
+  if(await AuthApi.logOut(prefs.getString('email')) &&  await prefs.clear()){
+    print("Forced Log Out!");
+  }else{
+    print("Error clearing prefs!");
+  }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
   NotificationSettings settings = await messaging.requestPermission(
     alert: true,
     announcement: false,
@@ -43,7 +59,12 @@ void main() async {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Message data: ${message.data}');
     if (message.notification != null) {
-      print('Message also contained a notification: ${message.notification}');
+      print('Message also contained an action: ${message.data['action']}');
+
+      String action = message.data['action'] ?? 'none';
+      if(action == 'force_logout'){
+        _forceLogout();
+      }
     }
   });
 
@@ -92,6 +113,7 @@ class _MyAppState extends State<MyApp>{
         primarySwatch: Colors.indigo,
       ),
       routes: {
+        '/landing': (context) => const Landing(),
         '/login': (context) => const Login(),
         '/list': (context) =>
             const WorkOrders(user: 'Unauthorized', email: 'Unauthorized'),
@@ -143,7 +165,6 @@ class _LandingState extends State<Landing> {
         Navigator.pushNamedAndRemoveUntil(
             context, '/login', ModalRoute.withName('/login'));
       }
-
     }
   }
 

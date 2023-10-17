@@ -92,7 +92,6 @@ class AuthApi{
 
   static Future<bool> logOut(String? email) async{
     var uri = Uri.parse('$wfmHost/auth/logOut');
-    // var uri = Uri.http(_uri);
 
     try{
       final response = await http.post(
@@ -106,6 +105,36 @@ class AuthApi{
       ).timeout(const Duration(seconds:10));
 
       Map data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        return true;
+      }else{
+        return false;
+      }
+    }catch(e){
+      print(e);
+      return false;
+    }
+  }
+
+  static Future<bool> logOutUser(String token, String email) async{
+    var uri = Uri.parse('$wfmHost/auth/logOutUser');
+    try{
+      print("start try");
+      final response = await http.post(
+          uri,
+          headers: {
+            "useQueryString" : "true",
+            "Authorization": "Bearer $token"
+          },
+          body: {
+            "email" : email,
+          }
+      ).timeout(const Duration(seconds:10));
+      print("end http call");
+
+      Map data = jsonDecode(response.body);
+      print(response);
 
       if(response.statusCode == 200){
         return true;
