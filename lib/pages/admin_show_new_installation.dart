@@ -276,6 +276,14 @@ class _AdminShowServiceOrderState extends State<AdminShowServiceOrder> {
                           style: textStyle(),
                           textAlign: TextAlign.start,
                         ),
+                    ),
+                    ListTile(
+                        leading: const Icon(Icons.numbers),
+                        title: Text(
+                          so.custContact,
+                          style: textStyle(),
+                          textAlign: TextAlign.start,
+                        ),
                         trailing: Wrap(
                           spacing: 12,
                           children: [

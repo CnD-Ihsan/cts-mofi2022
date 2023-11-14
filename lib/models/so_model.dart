@@ -6,6 +6,7 @@ class ServiceOrder {
   final String requestedBy;
   final String address;
   final String? progress;
+  final String? desc;
   final String? type;
   final String? createdBy;
   final String? startDate;
@@ -33,11 +34,12 @@ class ServiceOrder {
     required this.status,
     required this.requestedBy,
     required this.address,
-    this.progress = '',
-    this.type = '',
-    this.createdBy = '',
-    this.startDate = '',
-    this.endDate = '',
+    this.progress,
+    this.desc,
+    this.type,
+    this.createdBy,
+    this.startDate,
+    this.endDate,
     this.date = '',
     this.time = '',
     this.img = const {},

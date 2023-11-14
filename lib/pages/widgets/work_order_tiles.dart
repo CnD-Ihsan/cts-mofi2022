@@ -59,12 +59,16 @@ class _ArticleDescription extends StatelessWidget {
                 ),
               ),
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
-              Text(
-                '$date, $time',
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.black54,
-                ),
+              Row(
+                children: [
+                  Text(
+                    '$date, $time',
+                    style: const TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -74,8 +78,8 @@ class _ArticleDescription extends StatelessWidget {
   }
 }
 
-class CustomListItemTwo extends StatelessWidget {
-  const CustomListItemTwo({
+class OrderItem extends StatelessWidget {
+  const OrderItem({
     super.key,
     required this.thumbnail,
     required this.title,

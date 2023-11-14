@@ -158,13 +158,6 @@ class _WorkOrdersState extends State<WorkOrders> {
             hintStyle: const TextStyle(color: Colors.white),
             border: InputBorder.none,
           ),
-          // onChanged: (searchValue) {
-          //   print(searchValue);
-          //   filterNotifier.value['search'] = searchValue;
-          //   print(filterNotifier.value['search']);
-          //   setState(() {
-          //   });
-          // },
           onEditingComplete: () {
             filterNotifier.value['search'] =
                 _searchController.text.toUpperCase();
@@ -546,7 +539,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                   await Clipboard.setData(
                                       ClipboardData(text: wo.woName));
                                 },
-                                child: CustomListItemTwo(
+                                child: OrderItem(
                                   thumbnail: Image.asset(
                                     'assets/img/logo/$logo.png',
                                     fit: BoxFit.fitWidth,
@@ -572,7 +565,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                             )),
                                   );
                                 },
-                                child: CustomListItemTwo(
+                                child: OrderItem(
                                   thumbnail: Image.asset(
                                     'assets/img/logo/$logo.png',
                                     fit: BoxFit.fitWidth,
@@ -605,7 +598,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                   await Clipboard.setData(
                                       ClipboardData(text: wo.woName));
                                 },
-                                child: CustomListItemTwo(
+                                child: OrderItem(
                                   thumbnail: Image.asset(
                                     'assets/img/logo/$logo.png',
                                     fit: BoxFit.fitWidth,
@@ -632,7 +625,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                             )),
                                   );
                                 },
-                                child: CustomListItemTwo(
+                                child: OrderItem(
                                   thumbnail: Image.asset(
                                     'assets/img/logo/$logo.png',
                                     fit: BoxFit.fitWidth,
@@ -698,9 +691,10 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   Future<void> logOut() async{
-    if(await AuthApi.logOut(email)){
-      final SharedPreferences prefs =
-      await SharedPreferences.getInstance();
+    final SharedPreferences prefs =
+    await SharedPreferences.getInstance();
+
+    if(await AuthApi.logOut(email, prefs.getString('fcm_token'))){
       await prefs.clear();
       if (mounted) {
         colorSnackbarMessage(context, 'Account logged out', Colors.green);

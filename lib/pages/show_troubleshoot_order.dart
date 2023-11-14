@@ -135,7 +135,11 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     _faultLocation.text = tt.faultLocation ?? _faultLocation.text;
     _speedTest.text = tt.speedTest ?? _speedTest.text;
     _actionTaken.text = tt.actionTaken ?? _actionTaken.text;
-    _ontChange.text = tt.ontSn ?? _ontChange.text;
+    _ontChange.text = _ontChange.text;
+
+    if(tt.ontChange == "Approved" && _ontChange.text.isEmpty){
+      tt.progress = 'attachment';
+    }
 
     if (mounted) {
       setState(() {});
@@ -180,7 +184,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Troubleshoot Order"),
-        actions: tt.status != 'Pending' || tt.progress == 'close_requested'
+        actions: tt.status != 'Pending' || tt.progress == 'close_requested' || tt.ontChange == "Pending"
             ? null
             : [
                 Builder(builder: (context) {
@@ -365,7 +369,7 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                                 ? ' (Close Requested)'
                                 : tt.ontChange == 'Pending' ? ' (Awaiting ONT Change Approval)'
                                 : ''),
-                        style: tt.status == "Returned" || tt.status == "Cancelled" ? textFieldStyle(customColor: Colors.red) : textFieldStyle(),
+                        style: textFieldStyle(),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -403,10 +407,18 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                       ),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.info),
+                      leading: const Icon(Icons.assignment),
                       title: Text(
-                        tt.description,
+                        tt.description ?? '-',
                         style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.info, ),
+                      title: Text(
+                        tt.remark ?? '-',
+                        style: textFieldStyle(customColor: tt.status != 'Completed'  && tt.remark != null ? Colors.red : Colors.black87),
                         textAlign: TextAlign.justify,
                       ),
                     ),
@@ -465,6 +477,13 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
                         leading: const Icon(Icons.person),
                         title: Text(
                           tt.custName,
+                          style: textFieldStyle(),
+                          textAlign: TextAlign.start,
+                        ),),
+                    ListTile(
+                        leading: const Icon(Icons.numbers),
+                        title: Text(
+                          tt.custContact,
                           style: textFieldStyle(),
                           textAlign: TextAlign.start,
                         ),
@@ -717,9 +736,10 @@ class _ShowTroubleshootOrderState extends State<ShowTroubleshootOrder> {
   }
 
   Future<void> _pullRefresh() async {
-    TroubleshootOrder tempTT = await WorkOrderApi.getTroubleshootOrder(widget.orderID);
+    // TroubleshootOrder tempTT = await WorkOrderApi.getTroubleshootOrder(widget.orderID);
+    await getAsync(widget.orderID);
     setState(() {
-      tt = tempTT;
+      // tt = tempTT;
     });
   }
 

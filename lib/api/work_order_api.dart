@@ -80,6 +80,7 @@ class WorkOrderApi {
     );
 
     Map data = jsonDecode(response.body);
+    print("data: ${data['progress']}");
 
     String? tempDate;
     String? tempTime;
@@ -112,6 +113,7 @@ class WorkOrderApi {
       carrier: data['carrier'],
       speed: data['package'],
       progress: data['progress'],
+      desc: data['description'],
       remark: data['remark'],
     );
   }
@@ -136,7 +138,7 @@ class WorkOrderApi {
     );
 
     Map data = jsonDecode(response.body);
-    print(data);
+    print("data: $data");
 
     String? tempDate;
     String? tempTime;
@@ -247,7 +249,7 @@ class WorkOrderApi {
     );
 
     Map tempMessage = {};
-print(response.body);
+
     try {
       tempMessage = json.decode(response.body);
     } on FormatException catch (e) {
@@ -255,7 +257,13 @@ print(response.body);
     }
 
     if(response.statusCode < 200 || response.statusCode >= 300){
-      tempMessage = {"error" : "Error: ${tempMessage['errorMessage']}"};
+      if(tempMessage.containsKey('errorMessage')){
+        tempMessage = {"error" : "Error: ${tempMessage['errorMessage']}"};
+      }else if(tempMessage.containsKey('message')){
+        tempMessage = {"error" : "Error: ${tempMessage['errorMessage']}"};
+      }else{
+        tempMessage = {"error" : "Error: Unknown error."};
+      }
     }
 
     return tempMessage;
@@ -284,6 +292,7 @@ print(response.body);
       },
       body: jsonEncode(jsonOnt),
     );
+    print(response.body);
 
     if(response.statusCode >= 200 && response.statusCode <= 300){
       if(listImage.isNotEmpty){

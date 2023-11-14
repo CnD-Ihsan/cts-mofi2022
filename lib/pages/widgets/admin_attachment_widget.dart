@@ -73,12 +73,12 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
           leading: Icon(Icons.assignment_return_outlined),
           title: Text('Returned Attachments'),
         ),
-        Container(
+        SizedBox(
           height: 120.0,
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              progress != "close_requested" ? Container(
+              progress != "close_requested" ? SizedBox(
                 width: 120.0,
                 child: Center(
                   child: ListTile(
@@ -103,7 +103,7 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                   itemCount: listImage['return']?.length ?? 0,
                   itemBuilder: (context, index) {
                     return GestureDetector(
-                        child: Container(
+                        child: SizedBox(
                           height: 100,
                           width: 100,
                           child: CachedNetworkImage(
@@ -149,9 +149,9 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
             children: [
               const ListTile(
                 leading: Icon(Icons.broadcast_on_personal_outlined),
-                title: Text('ONT Serial Number *'),
+                title: Text('ONT Serial Number'),
               ),
-              Container(
+              SizedBox(
                 height: 120.0,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
@@ -163,7 +163,7 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                         itemCount: listImage['ontsn']?.length ?? 0,
                         itemBuilder: (context, index) {
                           return GestureDetector(
-                              child: Container(
+                              child: SizedBox(
                                 height: 100,
                                 width: 100,
                                 child: CachedNetworkImage(
@@ -194,61 +194,109 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                 ),
               ),
               const SizedBox(height: 34,),
-              const ListTile(
-                leading: Icon(Icons.assignment),
-                title: Text('Customer Signature'),
-              ),
-              Container(
-                height: 120.0,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: <Widget>[
-                    ListView.builder(
-                        reverse: false,
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: listImage['sign']?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          // if(listImage[index])
-                          return GestureDetector(
-                              child: Container(
-                                height: 100,
-                                width: 100,
-                                child: CachedNetworkImage(
-                                  fit: BoxFit.cover,
-                                  imageUrl: AdminAttachments.host +
-                                      (listImage['sign'][index]['name']),
-                                  placeholder: (context, url) =>
-                                  const Center(
-                                      child: CircularProgressIndicator()),
-                                  errorWidget: (context, url,
-                                      error) => const Icon(Icons.error),
-                                ),
-                              ),
-                              onLongPress: () {
-                                if (progress != "close_requested") {
-                                  deleteAttachment(context, woId,
-                                      listImage['sign'][index]['name'], refresh,
-                                      'sign');
-                                }
-                              },
-                              onTap: () {
-                                openGallery(context,
-                                    List<dynamic>.from(listImage['sign']),
-                                    index);
-                              });
-                        }),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 34,),
               Column(
                 children: [
+                  const ListTile(
+                    leading: Icon(Icons.router_outlined),
+                    title: Text('ISP Devices'),
+                  ),
+                  SizedBox(
+                    height: 120.0,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: <Widget>[
+                        ListView.builder(
+                            reverse: false,
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: listImage['isp_devices']?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              // if(listImage[index])
+                              return GestureDetector(
+                                  child: SizedBox(
+                                    height: 100,
+                                    width: 100,
+                                    child: CachedNetworkImage(
+                                      fit: BoxFit.cover,
+                                      imageUrl: AdminAttachments.host +
+                                          (listImage['isp_devices'][index]['name']),
+                                      placeholder: (context, url) =>
+                                      const Center(
+                                          child: CircularProgressIndicator()),
+                                      errorWidget: (context, url,
+                                          error) => const Icon(Icons.error),
+                                    ),
+                                  ),
+                                  onLongPress: () {
+                                    if (progress != "close_requested") {
+                                      deleteAttachment(context, woId,
+                                          listImage['isp_devices'][index]['name'], refresh,
+                                          'isp_devices');
+                                    }
+                                  },
+                                  onTap: () {
+                                    openGallery(context,
+                                        List<dynamic>.from(listImage['isp_devices']),
+                                        index);
+                                  });
+                            }),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 34,),
+                  const ListTile(
+                    leading: Icon(Icons.router_outlined),
+                    title: Text('FAT'),
+                  ),
+                  SizedBox(
+                    height: 120.0,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: <Widget>[
+                        ListView.builder(
+                            reverse: false,
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: listImage['fat']?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              // if(listImage[index])
+                              return GestureDetector(
+                                  child: SizedBox(
+                                    height: 100,
+                                    width: 100,
+                                    child: CachedNetworkImage(
+                                      fit: BoxFit.cover,
+                                      imageUrl: AdminAttachments.host +
+                                          (listImage['fat'][index]['name']),
+                                      placeholder: (context, url) =>
+                                      const Center(
+                                          child: CircularProgressIndicator()),
+                                      errorWidget: (context, url,
+                                          error) => const Icon(Icons.error),
+                                    ),
+                                  ),
+                                  onLongPress: () {
+                                    if (progress != "close_requested") {
+                                      deleteAttachment(context, woId,
+                                          listImage['fat'][index]['name'], refresh,
+                                          'fat');
+                                    }
+                                  },
+                                  onTap: () {
+                                    openGallery(context,
+                                        List<dynamic>.from(listImage['fat']),
+                                        index);
+                                  });
+                            }),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 34,),
                   const ListTile(
                     leading: Icon(Icons.network_check),
                     title: Text('Speed Test'),
                   ),
-                  Container(
+                  SizedBox(
                     height: 120.0,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
@@ -261,7 +309,7 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                             itemBuilder: (context, index) {
                               // if(listImage[index])
                               return GestureDetector(
-                                  child: Container(
+                                  child: SizedBox(
                                     height: 100,
                                     width: 100,
                                     child: CachedNetworkImage(
@@ -293,10 +341,10 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                   ),
                   const SizedBox(height: 34,),
                   const ListTile(
-                    leading: Icon(Icons.router_outlined),
-                    title: const Text('RGW Serial Number'),
+                    leading: Icon(Icons.assignment),
+                    title: Text('Customer Signature'),
                   ),
-                  Container(
+                  SizedBox(
                     height: 120.0,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
@@ -305,17 +353,17 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                             reverse: false,
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,
-                            itemCount: listImage['rgw']?.length ?? 0,
+                            itemCount: listImage['sign']?.length ?? 0,
                             itemBuilder: (context, index) {
                               // if(listImage[index])
                               return GestureDetector(
-                                  child: Container(
+                                  child: SizedBox(
                                     height: 100,
                                     width: 100,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
                                       imageUrl: AdminAttachments.host +
-                                          (listImage['rgw'][index]['name']),
+                                          (listImage['sign'][index]['name']),
                                       placeholder: (context, url) =>
                                       const Center(
                                           child: CircularProgressIndicator()),
@@ -326,13 +374,13 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                                   onLongPress: () {
                                     if (progress != "close_requested") {
                                       deleteAttachment(context, woId,
-                                          listImage['rgw'][index]['name'], refresh,
-                                          'rgw');
+                                          listImage['sign'][index]['name'], refresh,
+                                          'sign');
                                     }
                                   },
                                   onTap: () {
                                     openGallery(context,
-                                        List<dynamic>.from(listImage['rgw']),
+                                        List<dynamic>.from(listImage['sign']),
                                         index);
                                   });
                             }),
@@ -341,18 +389,18 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                   ),
                 ],
               ),
-              listImage.containsKey('web') ? Column(children: [
+              listImage.containsKey('others') ? Column(children: [
                 const ListTile(
-                  leading: Icon(Icons.web_outlined),
-                  title: const Text('Web Attachments'),
+                  leading: Icon(Icons.devices_other_sharp),
+                  title: Text('Others'),
                 ),
-                Container(
+                SizedBox(
                   height: 120.0,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: <Widget>[
                       progress != "close_requested" ?
-                      Container(
+                      SizedBox(
                         width: 120.0,
                         child: Center(
                           child: ListTile(
@@ -365,7 +413,7 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                               textAlign: TextAlign.center,
                             ),
                             onTap: () async {
-                              imagePickerPrompt(context, 'web', woId, refresh);
+                              imagePickerPrompt(context, 'others', woId, refresh);
                             },
                           ),
                         ),
@@ -374,17 +422,17 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                           reverse: false,
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
-                          itemCount: listImage['web']?.length ?? 0,
+                          itemCount: listImage['others']?.length ?? 0,
                           itemBuilder: (context, index) {
                             // if(listImage[index])
                             return GestureDetector(
-                                child: Container(
+                                child: SizedBox(
                                   height: 100,
                                   width: 100,
                                   child: CachedNetworkImage(
                                     fit: BoxFit.cover,
                                     imageUrl: AdminAttachments.host +
-                                        (listImage['web'][index]['name']),
+                                        (listImage['others'][index]['name']),
                                     placeholder: (context, url) =>
                                     const Center(
                                         child: CircularProgressIndicator()),
@@ -395,13 +443,13 @@ Widget adminNewInstallationAttachments(BuildContext context, num woId, String pr
                                 onLongPress: () {
                                   if (progress != "close_requested") {
                                     deleteAttachment(context, woId,
-                                        listImage['web'][index]['name'],
-                                        refresh, 'web');
+                                        listImage['others'][index]['name'],
+                                        refresh, 'others');
                                   }
                                 },
                                 onTap: () {
                                   openGallery(context,
-                                      List<dynamic>.from(listImage['web']),
+                                      List<dynamic>.from(listImage['others']),
                                       index);
                                 });
                           }),
@@ -439,7 +487,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
           leading: Icon(Icons.assignment_return_outlined),
           title: Text('Returned Attachments'),
         ),
-        Container(
+        SizedBox(
           height: 120.0,
           child: ListView(
             scrollDirection: Axis.horizontal,
@@ -451,7 +499,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                   itemCount: listImage['return']?.length ?? 0,
                   itemBuilder: (context, index) {
                     return GestureDetector(
-                        child: Container(
+                        child: SizedBox(
                           height: 100,
                           width: 100,
                           child: CachedNetworkImage(
@@ -496,7 +544,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                 leading: Icon(Icons.assignment),
                 title: Text('Customer Signature'),
               ),
-              Container(
+              SizedBox(
                 height: 120.0,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
@@ -509,7 +557,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                         itemBuilder: (context, index) {
                           // if(listImage[index])
                           return GestureDetector(
-                              child: Container(
+                              child: SizedBox(
                                 height: 100,
                                 width: 100,
                                 child: CachedNetworkImage(
@@ -535,7 +583,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                 leading: Icon(Icons.network_check),
                 title: Text('Speed Test'),
               ),
-              Container(
+              SizedBox(
                 height: 120.0,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
@@ -548,7 +596,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                         itemBuilder: (context, index) {
                           // if(listImage[index])
                           return GestureDetector(
-                              child: Container(
+                              child: SizedBox(
                                 height: 100,
                                 width: 100,
                                 child: CachedNetworkImage(
@@ -571,16 +619,16 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                 ),
               ),
               const ListTile(
-                leading: Icon(Icons.web_outlined),
-                title: Text('Web Attachments'),
+                leading: Icon(Icons.devices_other_sharp),
+                title: Text('Others'),
               ),
-              Container(
+              SizedBox(
                 height: 120.0,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: <Widget>[
                     progress != "close_requested" ?
-                    Container(
+                    SizedBox(
                       width: 120.0,
                       child: Center(
                         child: ListTile(
@@ -593,7 +641,7 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                             textAlign: TextAlign.center,
                           ),
                           onTap: () async {
-                            imagePickerPrompt(context, 'web', woId, refresh);
+                            imagePickerPrompt(context, 'others', woId, refresh);
                           },
                         ),
                       ),
@@ -602,27 +650,27 @@ Widget adminTroubleshootOrderAttachments(BuildContext context, num woId, Map lis
                         reverse: false,
                         shrinkWrap: true,
                         scrollDirection: Axis.horizontal,
-                        itemCount: listImage['web']?.length ?? 0,
+                        itemCount: listImage['others']?.length ?? 0,
                         itemBuilder: (context, index) {
                           // if(listImage[index])
                           return GestureDetector(
-                              child: Container(
+                              child: SizedBox(
                                 height: 100,
                                 width: 100,
                                 child: CachedNetworkImage(
                                   fit: BoxFit.cover,
-                                  imageUrl: AdminAttachments.host + (listImage['web'][index]['name']),
+                                  imageUrl: AdminAttachments.host + (listImage['others'][index]['name']),
                                   placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) => const Icon(Icons.error),
                                 ),
                               ),
                               onLongPress: (){
                                 if(progress != "close_requested"){
-                                  deleteAttachment(context, woId, listImage['web'][index]['name'], refresh, 'web');
+                                  deleteAttachment(context, woId, listImage['others'][index]['name'], refresh, 'others');
                                 }
                               },
                               onTap: () {
-                                openGallery(context, List<dynamic>.from(listImage['web']), index);
+                                openGallery(context, List<dynamic>.from(listImage['others']), index);
                               });
                         }),
                   ],

@@ -264,19 +264,6 @@ class _ReturnOrderState extends State<ReturnOrder> {
                             Navigator.pop(context);
                             snackbarMessage(
                                 context, "Order Succesfully returned!");
-                            // Navigator.popUntil(
-                            //     context, (route) => route.isFirst);
-                            // Navigator.pushReplacement(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //       settings: const RouteSettings(
-                            //         name: "/show",
-                            //       ),
-                            //       builder: (context) =>
-                            //           ShowServiceOrder(
-                            //             orderID: widget.woId,
-                            //           )),
-                            // );
                             Navigator.pop(context, widget.woId);
                           } else {
                             Navigator.pop(context);

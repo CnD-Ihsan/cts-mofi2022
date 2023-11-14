@@ -110,7 +110,7 @@ class _SubmitONTState extends State<SubmitONT> {
                           children: [
                             Expanded(
                                 child:
-                                Text(response['error'])),
+                                Text(response['error'] ?? "Unknown error")),
                             const Icon(
                               Icons.error_outline,
                               color: Colors.white,

@@ -295,9 +295,17 @@ class _AdminShowTroubleshootOrderState extends State<AdminShowTroubleshootOrder>
                       ),
                     ),
                     ListTile(
+                      leading: const Icon(Icons.assignment),
+                      title: Text(
+                        tt.description ?? '-',
+                        style: textFieldStyle(),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
                       leading: const Icon(Icons.info),
                       title: Text(
-                        tt.description,
+                        tt.remark ?? '-',
                         style: textFieldStyle(),
                         textAlign: TextAlign.justify,
                       ),
@@ -361,6 +369,13 @@ class _AdminShowTroubleshootOrderState extends State<AdminShowTroubleshootOrder>
                         leading: const Icon(Icons.person),
                         title: Text(
                           tt.custName,
+                          style: textFieldStyle(),
+                          textAlign: TextAlign.start,
+                        ),),
+                    ListTile(
+                        leading: const Icon(Icons.numbers),
+                        title: Text(
+                          tt.custContact,
                           style: textFieldStyle(),
                           textAlign: TextAlign.start,
                         ),

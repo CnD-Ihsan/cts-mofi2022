@@ -100,10 +100,14 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
             requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn, _rgwSnCt.text, _speedTestCt.text),
             if(!requestVerification.containsKey('error')){
               _pullRefresh(),
-              Navigator.pop(context),
-              snackbarMessage(context, 'Verification request submitted!')
+              if(mounted){
+                Navigator.pop(context),
+                snackbarMessage(context, 'Verification request submitted!')
+              }
             }else{
-              colorSnackbarMessage(context, 'Request error! ${requestVerification['error']}', Colors.red)
+              if(mounted){
+                colorSnackbarMessage(context, 'Request error! ${requestVerification['error']}', Colors.red)
+              }
             },
           }else{
            false,
@@ -139,6 +143,10 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
     } catch (e) {
       print(e);
     }
+
+    _rgwSnCt.text = so.rgwSn ?? _rgwSnCt.text;
+    _speedTestCt.text = so.speedTest ?? _speedTestCt.text;
+
     if (mounted) {
       setState(() {});
       Navigator.pop(context); //Pop the loadingScreen(context);
@@ -203,31 +211,6 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                         }
                       },
                       child: const Text("Return Order", style: TextStyle(color: Colors.red),),
-                    ),
-                    PopupMenuItem(
-                      height: 30,
-                      value: 0,
-                      onTap: () async {
-                        await Future.delayed(const Duration(milliseconds: 10));
-                        if(mounted){
-                          final returnedOrder = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ReturnOrder(
-                                  woId: widget.orderID,
-                                  ftthId: so.soId,
-                                  type: "SO",
-                                  refresh: refresh,
-                                )),
-                          );
-
-                          if(returnedOrder != null){
-                            await getAsync(returnedOrder as num);
-                            setState(() {});
-                          }
-                        }
-                      },
-                      child: const Text("Change ONT", style: TextStyle(color: Colors.black),),
                     ),
                   ],
                 );
@@ -363,6 +346,22 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                         ),
                       ),
                     ),
+                    ListTile(
+                      leading: const Icon(Icons.assignment),
+                      title: Text(
+                        so.desc ?? '-',
+                        style: textStyle(customColor: so.status != 'Completed'  && so.remark != null ? Colors.red : Colors.black87),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.info, color: so.status != 'Completed' && so.remark != null ? Colors.red : null),
+                      title: Text(
+                        so.remark ?? '-',
+                        style: textStyle(customColor: so.status != 'Completed'  && so.remark != null ? Colors.red : Colors.black87),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
                     const SizedBox(
                       height: 20,
                     ),
@@ -404,6 +403,14 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                           style: textStyle(),
                           textAlign: TextAlign.start,
                         ),
+                    ),
+                    ListTile(
+                        leading: const Icon(Icons.numbers),
+                        title: Text(
+                          so.custContact,
+                          style: textStyle(),
+                          textAlign: TextAlign.start,
+                        ),
                         trailing: Wrap(
                           spacing: 12,
                           children: [
@@ -411,7 +418,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                               onTap: () async {
                                 final Uri url = Uri.parse('https://wa.me/+6${so.custContact}');
                                 if(await canLaunchUrl(url)){
-                                launchUrl(url, mode: LaunchMode.externalApplication);
+                                  launchUrl(url, mode: LaunchMode.externalApplication);
                                 }
                               },
                               child: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,),
@@ -479,7 +486,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       padding: const EdgeInsets.all(4.0),
                       child: Column(
                         children: [
-                          so.speedTest == null && so.progress != 'close_requested' ?
+                          so.progress != 'close_requested' && so.status != 'Completed' ?
                           Column(
                             children: [
                               const SizedBox(height: 10,),
@@ -505,7 +512,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                             title: Text('Speed Test:'),
                             subtitle: Text(so.speedTest ?? '-'),
                           ),
-                          so.rgwSn == null && so.progress != 'close_requested' ?
+                          so.progress != 'close_requested' && so.status != 'Completed' ?
                           Column(
                             children: [
                               const SizedBox(height: 20,),

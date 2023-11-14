@@ -8,9 +8,8 @@ class AuthApi{
   // static const wfmHost = 'http://80.80.1.131:81/api';
   static const wfmHost = 'https://wfm.ctsabah.net/api';
 
-  static Future<bool> isUserActive(String? email) async{
+  static Future<bool> isUserActive(String? email, String? deviceId) async{
     var uri = Uri.parse('$wfmHost/auth/isUserActive');
-    // var uri = Uri.http(_uri);
 
     try{
       final response = await http.post(
@@ -20,12 +19,13 @@ class AuthApi{
           },
           body: {
             "email" : email,
+            "device_id" : deviceId,
           }
       ).timeout(const Duration(seconds:10));
 
       Map data = jsonDecode(response.body);
 
-      if(response.statusCode == 200 && data['status'] == 'Active'){
+      if(response.statusCode == 200 && data['status'] == true){
         return true;
       }else{
         return false;
@@ -90,8 +90,12 @@ class AuthApi{
 
   }
 
-  static Future<bool> logOut(String? email) async{
+  static Future<bool> logOut(String? email, String? fcmToken) async{
     var uri = Uri.parse('$wfmHost/auth/logOut');
+    var bodyData = {
+      "email" : email,
+      "device_id" : fcmToken,
+    };
 
     try{
       final response = await http.post(
@@ -101,8 +105,10 @@ class AuthApi{
           },
           body: {
             "email" : email,
+            "device_id" : fcmToken,
           }
       ).timeout(const Duration(seconds:10));
+      print(response.body);
 
       Map data = jsonDecode(response.body);
 
@@ -112,7 +118,7 @@ class AuthApi{
         return false;
       }
     }catch(e){
-      print(e);
+      print("this is logout error $e");
       return false;
     }
   }
@@ -120,7 +126,6 @@ class AuthApi{
   static Future<bool> logOutUser(String token, String email) async{
     var uri = Uri.parse('$wfmHost/auth/logOutUser');
     try{
-      print("start try");
       final response = await http.post(
           uri,
           headers: {
@@ -131,10 +136,8 @@ class AuthApi{
             "email" : email,
           }
       ).timeout(const Duration(seconds:10));
-      print("end http call");
 
       Map data = jsonDecode(response.body);
-      print(response);
 
       if(response.statusCode == 200){
         return true;

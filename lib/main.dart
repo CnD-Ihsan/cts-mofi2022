@@ -12,13 +12,11 @@ import 'firebase_options.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(); //required for using Firebase services
   print("Handling a background message: ${message.messageId}");
   print('Message also contained an action: ${message.data['action']}');
   if(message.data['action'] == 'force_logout'){
-    // await logOut();
+    await _forceLogout();
   }
 }
 
@@ -27,7 +25,7 @@ Future<void> _forceLogout() async {
 
   print("Clearing shared prefs...");
 
-  if(await AuthApi.logOut(prefs.getString('email')) &&  await prefs.clear()){
+  if(await AuthApi.logOut(prefs.getString('email'), prefs.getString('fcm_token')) &&  await prefs.clear()){
     print("Forced Log Out!");
   }else{
     print("Error clearing prefs!");
@@ -68,22 +66,6 @@ void main() async {
     }
   });
 
-  // SharedPreferences prefs = await SharedPreferences.getInstance();
-  // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-  //   // Check user login status here
-  //   if (prefs.containsKey("email") && prefs.getString("email") != null) {
-  //     Navigator.push(context, MaterialPageRoute(builder: (context) => ScreenC()));
-  //   } else {
-  //     Navigator.push(context, MaterialPageRoute(builder: (context) => ScreenA()));
-  //   }
-  // });
-
-  // FirebaseMessaging.onBackgroundMessage((message) async {
-  //   print(message);
-  // });
-
-  print(fcmToken);
-
   runApp(const MyApp());
 }
 
@@ -100,7 +82,6 @@ class _MyAppState extends State<MyApp>{
 
   @override
   void initState() {
-    // initFirebase();
     super.initState();
   }
 
@@ -145,8 +126,8 @@ class _LandingState extends State<Landing> {
 
   _loadUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool activeUser = await AuthApi.isUserActive(prefs.getString('email'));
-    print(activeUser);
+    bool activeUser = await AuthApi.isUserActive(prefs.getString('email'), prefs.getString('fcmToken'));
+    print("user is active? $activeUser");
 
     if (prefs.containsKey('user') && activeUser) {
       if(mounted){
