@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/auth_api.dart';
 import 'package:wfm/pages/list_orders.dart';
@@ -34,9 +35,12 @@ Future<void> _forceLogout() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await dotenv.load(fileName: ".env");
 
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 

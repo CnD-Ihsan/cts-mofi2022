@@ -7,6 +7,7 @@ import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/pages/admin_show_new_installation.dart';
 import 'package:wfm/pages/admin_show_troubleshoot_order.dart';
+import 'package:wfm/pages/map_screen.dart';
 import 'package:wfm/pages/user_screens.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
@@ -404,6 +405,20 @@ class _WorkOrdersState extends State<WorkOrders> {
                         name: "/listUsers",
                       ),
                       builder: (context) => UpdatePassword(userEmail: email)),
+                ),
+              },
+            ),
+            ListTile(
+              title: const Text('Map Test'),
+              leading: const Icon(Icons.map),
+              onTap: () => {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      settings: const RouteSettings(
+                        name: "/mapScreen",
+                      ),
+                      builder: (context) => const MapScreen()),
                 ),
               },
             ),
