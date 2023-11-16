@@ -47,5 +47,5 @@ app.*.map.json
 /android/app/release
 
 #dev defined
-android/app/src/main/AndroidManifest.xml
+config.json
 .env*
