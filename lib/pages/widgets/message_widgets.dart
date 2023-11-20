@@ -114,12 +114,6 @@ alertMessage(BuildContext context, String message) {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           TextButton(
-            child: const Center(child: Text('Cancel')),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          TextButton(
             child: const Center(child: Text('Confirm')),
             onPressed: () {
               Navigator.pop(context);

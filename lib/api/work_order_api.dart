@@ -80,7 +80,6 @@ class WorkOrderApi {
     );
 
     Map data = jsonDecode(response.body);
-    print("data: ${data['progress']}");
 
     String? tempDate;
     String? tempTime;
