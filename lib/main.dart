@@ -124,33 +124,31 @@ class _LandingState extends State<Landing> {
 
   @override
   void initState() {
-    _loadUserInfo();
     super.initState();
+    _loadUserInfo();
   }
 
   _loadUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool activeUser = await AuthApi.isUserActive(prefs.getString('email'), prefs.getString('fcmToken'));
-    print("user is active? $activeUser");
+    var activeUser = await AuthApi.isUserActive(prefs.getString('email'), prefs.getString('fcm_token'));
 
-    if (prefs.containsKey('user') && activeUser) {
-      if(mounted){
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WorkOrders(
-                user: prefs.getString('user') ?? 'NullUser',
-                email: prefs.getString('email') ?? 'NullEmail'),
-            settings: const RouteSettings(name: '/list'),
-          ),
-        );
-      }
-    } else {
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-            context, '/login', ModalRoute.withName('/login'));
+    if(mounted){
+      if (prefs.containsKey('user') && activeUser) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WorkOrders(
+                  user: prefs.getString('user') ?? 'NullUser',
+                  email: prefs.getString('email') ?? 'NullEmail'),
+              settings: const RouteSettings(name: '/list'),
+            ),
+          );
+      } else {
+          Navigator.pushNamedAndRemoveUntil(
+              context, '/login', ModalRoute.withName('/login'));
       }
     }
+
   }
 
   @override

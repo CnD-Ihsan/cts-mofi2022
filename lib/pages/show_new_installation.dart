@@ -431,7 +431,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                             ),
                           ],)
                     ),
-                    ListTile(
+                    so.status != "Returned" ? ListTile(
                       leading: const Text(
                         'ONT',
                         style: TextStyle(fontSize: 14),
@@ -444,7 +444,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                         style:  so.ontSn == "Terminated" ? textStyle(customColor: Colors.red) : textStyle(),
                         textAlign: TextAlign.start,
                       ),
-                    ),
+                    ) : const SizedBox(),
                     SizedBox(
                       key: _scrollAttachmentKey,
                       height: 20,

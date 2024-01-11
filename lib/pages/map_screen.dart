@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapScreen extends StatefulWidget {
@@ -11,67 +11,113 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  late LatLng _returningLatLng;
+  late Position _userPosition;
+  CameraPosition? _userCameraPosition;
+  late LocationPermission _locationPermission;
 
   @override
   void initState() {
-    randomPrint();
-    // String? tbp = dotenv.env['GOOGLE_MAP_API_KEY'];
+    getUserCurrentLocation();
     super.initState();
   }
 
-  final Completer<GoogleMapController> _controller =
-  Completer<GoogleMapController>();
+  final Completer<GoogleMapController> _mapController =
+      Completer<GoogleMapController>();
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
-
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  late final List<Marker> _markers = <Marker>[
+    const Marker(
+        markerId: MarkerId('1'),
+        position: LatLng(6.0320136, 116.1314596),
+        infoWindow: InfoWindow(
+          title: 'Default',
+        )),
+  ];
 
   static const CameraPosition _cts100 = CameraPosition(
     target: LatLng(6.0320136, 116.1314596),
     zoom: 14.4746,
   );
 
-  static const CameraPosition _cts100Zoom = CameraPosition(
-      target: LatLng(6.0320136, 116.1314596),
-      // tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  // created method for getting user current location
+  void getUserCurrentLocation() async {
+    _userPosition = await Geolocator.getCurrentPosition();
+    _returningLatLng = LatLng(_userPosition.latitude, _userPosition.longitude);
+    _userCameraPosition = CameraPosition(
+        target: _returningLatLng,
+        zoom: 19)!;
+    updateMarker("1", _returningLatLng);
+    if(mounted){
+      setState(() {
+      });
+    }
+    await _moveToUser();
+  }
+
+  void updateMarker(String markerId, LatLng newPosition) {
+    if(mounted){
+      setState(() {
+        var marker =
+        _markers.firstWhere((element) => element.markerId.value == markerId);
+        _markers.removeWhere((element) => element.markerId.value == markerId);
+        _markers.add(Marker(
+          markerId: MarkerId(markerId),
+          position: newPosition,
+        ));
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
+      body: _userCameraPosition == null ? const Center(
+        // Display Progress Indicator
+        child: CircularProgressIndicator(),
+      ) : GoogleMap(
         mapType: MapType.hybrid,
         initialCameraPosition: _cts100,
+        markers: Set<Marker>.of(_markers),
+        zoomControlsEnabled: false,
         onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
+          _mapController.complete(controller);
+        },
+        onTap: (tappedLatLng) {
+          _returningLatLng = tappedLatLng;
+          updateMarker("1", tappedLatLng);
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _zoomInCts,
-        label: const Text('Zoom in the Office!'),
-        icon: const Icon(Icons.directions_boat),
+      floatingActionButton: _userCameraPosition == null ? null : FloatingActionButton.extended(
+        onPressed: () => {Navigator.pop(context, _returningLatLng)},
+        label: const Text('Confirm'),
+        icon: const Icon(Icons.check_circle_outline),
       ),
     );
   }
 
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    await controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+  Future<void> _moveToUser() async {
+    final GoogleMapController controller = await _mapController.future;
+    await controller
+        .animateCamera(CameraUpdate.newCameraPosition(_userCameraPosition!));
   }
 
-  Future<void> _zoomInCts() async {
-    final GoogleMapController controller = await _controller.future;
-    await controller.animateCamera(CameraUpdate.newCameraPosition(_cts100Zoom));
-  }
-
-  void randomPrint(){
-    print("ada cni");
+  showMapLoader(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(),
+          Container(
+              margin: const EdgeInsets.only(left: 7),
+              child: const Text("Loading Map...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 }

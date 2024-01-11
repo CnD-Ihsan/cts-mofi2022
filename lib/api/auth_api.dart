@@ -5,10 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthApi{
-  // static const wfmHost = 'http://80.80.1.131:81/api';
   static const wfmHost = 'https://wfm.ctsabah.net/api';
 
-  static Future<bool> isUserActive(String? email, String? deviceId) async{
+  static Future<dynamic> isUserActive(String? email, String? deviceId) async{
     var uri = Uri.parse('$wfmHost/auth/isUserActive');
 
     try{
@@ -108,7 +107,6 @@ class AuthApi{
             "device_id" : fcmToken,
           }
       ).timeout(const Duration(seconds:10));
-      print(response.body);
 
       Map data = jsonDecode(response.body);
 
@@ -118,7 +116,6 @@ class AuthApi{
         return false;
       }
     }catch(e){
-      print("this is logout error $e");
       return false;
     }
   }
@@ -145,7 +142,6 @@ class AuthApi{
         return false;
       }
     }catch(e){
-      print(e);
       return false;
     }
   }

@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wfm/pages/list_orders.dart';
 import 'package:wfm/api/auth_api.dart';
 
@@ -67,7 +68,6 @@ class _FormContent extends StatefulWidget {
 
 class __FormContentState extends State<_FormContent> {
   bool _isPasswordVisible = false;
-  bool _rememberMe = false;
   var emController = TextEditingController();
   var pwController = TextEditingController();
   var loginResponse;
@@ -87,128 +87,136 @@ class __FormContentState extends State<_FormContent> {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text("Welcome back! Login to your account", style: TextStyle(fontSize: 14,),),
-            ),
-            TextFormField(
-              controller: emController,
-              onSaved: (input) => emController.text = input ?? "Empty email",
-              validator: (value) {
-                // add email validation
-                if (value == null || value.isEmpty) {
-                  return 'Please enter some text';
-                }
-
-                bool _emailValid = RegExp(
-                        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                    .hasMatch(value);
-                if (!_emailValid) {
-                  return 'Please enter a valid email';
-                }
-
-                return null;
-              },
-              decoration: InputDecoration(
-                fillColor: Colors.grey.shade200,
-                filled: true,
-                labelText: 'Email',
-                hintText: 'Enter your email',
-                prefixIcon: const Icon(Icons.email_outlined),
-                border: const OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.all(Radius.circular(15))),
-              ),
-            ),
-            _gap(),
-            TextFormField(
-              controller: pwController,
-              onSaved: (input) => pwController.text = input ?? "Empty password",
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter some text';
-                }
-
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
-                }
-                return null;
-              },
-              obscureText: !_isPasswordVisible,
-              decoration: InputDecoration(
-                  fillColor: Colors.grey.shade200,
-                  filled: true,
-                  labelText: 'Password',
-                  hintText: 'Enter your password',
-                  prefixIcon: const Icon(Icons.lock_outline_rounded),
-                  border: const OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.all(Radius.circular(15))),
-                  suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible
-                        ? Icons.visibility_off
-                        : Icons.visibility),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  )),
-            ),
-            _gap(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
+      child: Column(
+        children: [
+          Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text("Welcome back! Login to your account", style: TextStyle(fontSize: 14,),),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Text(
-                    'Sign in',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                TextFormField(
+                  controller: emController,
+                  onSaved: (input) => emController.text = input ?? "Empty email",
+                  validator: (value) {
+                    // add email validation
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+
+                    bool _emailValid = RegExp(
+                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                        .hasMatch(value);
+                    if (!_emailValid) {
+                      return 'Please enter a valid email';
+                    }
+
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    fillColor: Colors.grey.shade200,
+                    filled: true,
+                    labelText: 'Email',
+                    hintText: 'Enter your email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: const OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.all(Radius.circular(15))),
                   ),
                 ),
-                onPressed: () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    showLoaderDialog(context);
-                    loginResponse =
-                        await AuthApi.loginRequest(emController.text, pwController.text);
-                    await Future.delayed(const Duration(milliseconds: 800));
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                    if (loginResponse.user != '') {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => WorkOrders(
-                                  user: loginResponse.user,
-                                  email: emController.text,
-                                )),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          behavior: SnackBarBehavior.floating,
-                          content: Text(loginResponse.message),
-                          backgroundColor: Colors.red,
-                          duration: const Duration(milliseconds: 1800),
-                        ),
-                      );
+                _gap(),
+                TextFormField(
+                  controller: pwController,
+                  onSaved: (input) => pwController.text = input ?? "Empty password",
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter some text';
                     }
-                  }
-                },
-              ),
+
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                  obscureText: !_isPasswordVisible,
+                  decoration: InputDecoration(
+                      fillColor: Colors.grey.shade200,
+                      filled: true,
+                      labelText: 'Password',
+                      hintText: 'Enter your password',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.all(Radius.circular(15))),
+                      suffixIcon: IconButton(
+                        icon: Icon(_isPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      )),
+                ),
+                _gap(),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Text(
+                        'Sign in',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        showLoaderDialog(context);
+                        loginResponse =
+                            await AuthApi.loginRequest(emController.text, pwController.text);
+                        await Future.delayed(const Duration(milliseconds: 800));
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                        if (loginResponse.user != '') {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => WorkOrders(
+                                      user: loginResponse.user,
+                                      email: emController.text,
+                                    )),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              behavior: SnackBarBehavior.floating,
+                              content: Text(loginResponse.message),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(milliseconds: 1800),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text("Version: ${dotenv.env['VERSION'] ?? "-"}", style: const TextStyle(fontSize: 12, color: Colors.black54),),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -409,20 +409,6 @@ class _WorkOrdersState extends State<WorkOrders> {
               },
             ),
             ListTile(
-              title: const Text('Map Test'),
-              leading: const Icon(Icons.map),
-              onTap: () => {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      settings: const RouteSettings(
-                        name: "/mapScreen",
-                      ),
-                      builder: (context) => const MapScreen()),
-                ),
-              },
-            ),
-            ListTile(
               title: const Text('Log Out'),
               leading: const Icon(Icons.exit_to_app),
               onTap: () async {

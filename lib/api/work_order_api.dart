@@ -64,7 +64,6 @@ class WorkOrderApi {
         Uri.parse('$wfmHost/work-orders/show');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
-
     Map dataSend = {
       "id": id,
     };
@@ -137,7 +136,6 @@ class WorkOrderApi {
     );
 
     Map data = jsonDecode(response.body);
-    print("data: $data");
 
     String? tempDate;
     String? tempTime;
@@ -268,7 +266,7 @@ class WorkOrderApi {
     return tempMessage;
   }
 
-  static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remark, List<XFile?> listImage) async {
+  static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remark, String? latitude, String? longitude,List<XFile?> listImage) async {
     var uri = Uri.parse('$wfmHost/work-orders/return-order/$woId');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -277,6 +275,11 @@ class WorkOrderApi {
       "returnType": returnType,
       "remark": remark,
     };
+
+    if(returnType!.contains("Wrong Address")){
+      jsonOnt["latitude"] = latitude;
+      jsonOnt["longitude"] = longitude;
+    }
 
     ftthType == 'SO'
         ? jsonOnt['soId'] = ftthId
@@ -291,7 +294,6 @@ class WorkOrderApi {
       },
       body: jsonEncode(jsonOnt),
     );
-    print(response.body);
 
     if(response.statusCode >= 200 && response.statusCode <= 300){
       if(listImage.isNotEmpty){
