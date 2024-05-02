@@ -2,15 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wfm/api/base_api.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
+import '../../api/auth_api.dart';
 import '../../api/utils.dart';
 
 class Attachments extends StatefulWidget {
   final num woId;
   final List<String> urlImages;
-  static const String host = 'https://wfm.ctsabah.net/api/work-orders/order-image/';
   const Attachments({Key? key, required this.woId, required this.urlImages}) : super(key: key);
 
   @override
@@ -104,7 +105,7 @@ class _AttachmentsState extends State<Attachments> {
                                 width: 100,
                                 child: CachedNetworkImage(
                                   fit: BoxFit.cover,
-                                  imageUrl: Attachments.host + (urlImages[index]),
+                                  imageUrl: BaseApi.wfmImageHost + (urlImages[index]),
                                   placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) => const Icon(Icons.error),
                                 ),
@@ -218,7 +219,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                           width: 100,
                           child: CachedNetworkImage(
                             fit: BoxFit.cover,
-                            imageUrl: Attachments.host + (listImage['return'][index]['name']),
+                            imageUrl: BaseApi.wfmImageHost + (listImage['return'][index]['name']),
                             placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                             errorWidget: (context, url, error) => const Icon(Icons.error),
                           ),
@@ -297,7 +298,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                                 width: 100,
                                 child: CachedNetworkImage(
                                   fit: BoxFit.cover,
-                                  imageUrl: Attachments.host +
+                                  imageUrl: BaseApi.wfmImageHost +
                                       (listImage['ontsn'][index]['name']),
                                   placeholder: (context, url) =>
                                   const Center(
@@ -368,7 +369,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                                     width: 100,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      imageUrl: Attachments.host +
+                                      imageUrl: BaseApi.wfmImageHost +
                                           (listImage['isp_devices'][index]['name']),
                                       placeholder: (context, url) =>
                                       const Center(
@@ -437,7 +438,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                                     width: 100,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      imageUrl: Attachments.host +
+                                      imageUrl: BaseApi.wfmImageHost +
                                           (listImage['fat'][index]['name']),
                                       placeholder: (context, url) =>
                                       const Center(
@@ -505,7 +506,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                                     width: 100,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      imageUrl: Attachments.host +
+                                      imageUrl: BaseApi.wfmImageHost +
                                           (listImage['speedtest'][index]['name']),
                                       placeholder: (context, url) =>
                                       const Center(
@@ -574,7 +575,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                                     width: 100,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      imageUrl: Attachments.host +
+                                      imageUrl: BaseApi.wfmImageHost +
                                           (listImage['sign'][index]['name']),
                                       placeholder: (context, url) =>
                                       const Center(
@@ -643,7 +644,7 @@ Widget newInstallationAttachments(BuildContext context, num woId, String progres
                                   width: 100,
                                   child: CachedNetworkImage(
                                     fit: BoxFit.cover,
-                                    imageUrl: Attachments.host +
+                                    imageUrl: BaseApi.wfmImageHost +
                                         (listImage['others'][index]['name']),
                                     placeholder: (context, url) =>
                                     const Center(
@@ -734,7 +735,7 @@ Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImag
                           width: 100,
                           child: CachedNetworkImage(
                             fit: BoxFit.cover,
-                            imageUrl: Attachments.host + (listImage['return'][index]['name']),
+                            imageUrl: BaseApi.wfmImageHost + (listImage['return'][index]['name']),
                             placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                             errorWidget: (context, url, error) => const Icon(Icons.error),
                           ),
@@ -811,7 +812,7 @@ Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImag
                                 width: 100,
                                 child: CachedNetworkImage(
                                   fit: BoxFit.cover,
-                                  imageUrl: Attachments.host + (listImage['speedtest'][index]['name']),
+                                  imageUrl: BaseApi.wfmImageHost + (listImage['speedtest'][index]['name']),
                                   placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) => const Icon(Icons.error),
                                 ),
@@ -869,7 +870,7 @@ Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImag
                                 width: 100,
                                 child: CachedNetworkImage(
                                   fit: BoxFit.cover,
-                                  imageUrl: Attachments.host + (listImage['sign'][index]['name']),
+                                  imageUrl: BaseApi.wfmImageHost + (listImage['sign'][index]['name']),
                                   placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) => const Icon(Icons.error),
                                 ),
@@ -927,7 +928,7 @@ Widget troubleshootOrderAttachments(BuildContext context, num woId, Map listImag
                                 width: 100,
                                 child: CachedNetworkImage(
                                   fit: BoxFit.cover,
-                                  imageUrl: Attachments.host + (listImage['others'][index]['name']),
+                                  imageUrl: BaseApi.wfmImageHost + (listImage['others'][index]['name']),
                                   placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) => const Icon(Icons.error),
                                 ),
@@ -993,7 +994,7 @@ class _GalleryWidgetState extends State<GalleryWidget> {
             },
             itemCount: widget.urlImages.length,
             builder: (context, index) {
-              final urlImage = '${Attachments.host}${widget.urlImages[index]['name']}';
+              final urlImage = '${BaseApi.wfmImageHost}${widget.urlImages[index]['name']}';
               return PhotoViewGalleryPageOptions(
                 imageProvider: NetworkImage(urlImage),
               );

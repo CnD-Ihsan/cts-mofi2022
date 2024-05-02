@@ -7,8 +7,6 @@ import 'package:wfm/api/utils.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:wfm/pages/show_new_installation.dart';
-import 'package:wfm/pages/widgets/attachment_widget.dart';
-
 import '../show_troubleshoot_order.dart';
 
 snackbarMessage(BuildContext context, String? message) {
@@ -38,7 +36,7 @@ colorSnackbarMessage(BuildContext context, String? message, Color? color) {
         children: [
           Expanded(child: Text(message ?? 'Missing')),
           const Icon(
-            Icons.error_outline,
+            Icons.info_outline,
             color: Colors.white,
           ),
         ],
@@ -398,7 +396,7 @@ imagePickerPrompt(BuildContext context, String type, num woId,
 deleteAttachment(BuildContext context, num woId, String img,
     Function(Map, String) refresh, String type) {
   AlertDialog alert = AlertDialog(
-    titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
+    titlePadding: const EdgeInsets.fromLTRB(18, 18, 0, 0),
     actionsPadding: EdgeInsets.zero,
     title: const ListTile(
       title: Text('Delete image?'),
@@ -457,7 +455,7 @@ Future<bool> resetPasswordPrompt(BuildContext context, String email) async {
   AlertDialog alert = AlertDialog(
     iconColor: Colors.indigo,
     icon: const Icon(
-      Icons.warning_amber,
+      Icons.lock_reset_rounded,
       size: 120,
     ),
     // title: Center(child: const Text('Confirm')),

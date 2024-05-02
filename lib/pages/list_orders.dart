@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/auth_api.dart';
+import 'package:wfm/api/base_api.dart';
 import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/pages/admin_show_new_installation.dart';
 import 'package:wfm/pages/admin_show_troubleshoot_order.dart';
-import 'package:wfm/pages/map_screen.dart';
 import 'package:wfm/pages/user_screens.dart';
 import 'package:wfm/pages/show_new_installation.dart';
 import 'package:wfm/api/work_order_api.dart';
@@ -17,8 +17,7 @@ import 'package:wfm/pages/widgets/work_order_tiles.dart';
 
 class WorkOrders extends StatefulWidget {
   final String user, email;
-  const WorkOrders({Key? key, required this.user, required this.email})
-      : super(key: key);
+  const WorkOrders({super.key, required this.user, required this.email});
 
   @override
   State<WorkOrders> createState() => _WorkOrdersState();
@@ -166,13 +165,12 @@ class _WorkOrdersState extends State<WorkOrders> {
           },
         ),
         actions: [
-
           Builder(builder: (context) {
             return IconButton(
                 onPressed: () {
                   Scaffold.of(context).openEndDrawer();
                 },
-                icon: const Icon(Icons.filter_list_outlined));
+                icon: Icon(Icons.filter_list_outlined, color: dateFilterNotifier.value['singleDate'] != null || dateFilterNotifier.value['startDate'] != null || dateFilterNotifier.value['endDate'] != null ? Colors.deepOrange : null));
           })
         ],
       ),
@@ -274,10 +272,9 @@ class _WorkOrdersState extends State<WorkOrders> {
                                         firstDate: DateTime(2023),
                                         lastDate: DateTime(
                                             today.year, today.month + 6));
-                                setState(() {
-                                  Navigator.pop(context);
-                                });
+                                setState(() {});
                               },
+                              style: dateFilterNotifier.value['singleDate'] != null ? ButtonStyle(backgroundColor: MaterialStateColor.resolveWith((states) => Colors.deepOrange)) : null,
                               child: const Text('Single Date')),
                           ElevatedButton(
                               onPressed: () async {
@@ -296,6 +293,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                         .add(const Duration(days: 1));
                                 setState(() {});
                               },
+                              style: dateFilterNotifier.value['startDate'] != null && dateFilterNotifier.value['endDate'] != null ? ButtonStyle(backgroundColor: MaterialStateColor.resolveWith((states) => Colors.deepOrange)) : null,
                               child: const Text('Range Date')),
                         ],
                       ),
@@ -327,16 +325,11 @@ class _WorkOrdersState extends State<WorkOrders> {
       drawer: Drawer(
         child: Column(
           children: [
-            // UserAccountsDrawerHeader(
-            //     accountName: Text(user),
-            //     accountEmail: Text(widget.email),
-            //     currentAccountPicture: CircleAvatar(),
-            // ),
             Container(
               height: 230,
               decoration: const BoxDecoration(
                 borderRadius:
-                    BorderRadius.only(bottomRight: Radius.circular(150)),
+                    BorderRadius.only(bottomRight: Radius.circular(120)),
                 gradient:
                     LinearGradient(colors: [Colors.indigo, Colors.deepPurple]),
                 color: Colors.indigo,
@@ -423,8 +416,9 @@ class _WorkOrdersState extends State<WorkOrders> {
           ],
         ),
       ),
-      body: WillPopScope(
-        onWillPop: () {
+      body: PopScope(
+        canPop: false,
+        onPopInvoked: (bool didPop) async {
           if (FocusScope.of(context).hasFocus) {
             FocusScope.of(context).unfocus();
             return Future.value(false);
@@ -550,6 +544,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                   group: '${wo.type} (${wo.status})',
                                   date: wo.date ?? 'Unassigned',
                                   time: wo.time ?? 'Unassigned',
+                                  ticketStatus: wo.closedAt == null ? 'Open' : 'Closed',
                                 ),
                               );
                             } else {
@@ -576,6 +571,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                   group: '${wo.type} (${wo.status})',
                                   date: wo.date ?? 'Unassigned',
                                   time: wo.time ?? 'Unassigned',
+                                  ticketStatus: wo.closedAt == null ? 'Open' : 'Closed',
                                 ),
                               );
                             }
@@ -609,6 +605,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                   group: '${wo.type} (${wo.status})',
                                   date: wo.date ?? 'Unassigned',
                                   time: wo.time ?? 'Unassigned',
+                                  ticketStatus: wo.closedAt == null ? 'Open' : 'Closed',
                                 ),
                               );
                             } else {
@@ -636,6 +633,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                                   group: '${wo.type} (${wo.status})',
                                   date: wo.date ?? 'Unassigned',
                                   time: wo.time ?? 'Unassigned',
+                                  ticketStatus: wo.closedAt == null ? 'Open' : 'Closed',
                                 ),
                               );
                             }
@@ -685,6 +683,17 @@ class _WorkOrdersState extends State<WorkOrders> {
           builder: (BuildContext context) => const Landing(),
         ),
       );
+    }
+    if(await AuthApi.checkVersion() != BaseApi.appVersion){
+      if(mounted){
+        colorSnackbarMessage(context, 'Invalid app version.', Colors.red);
+        Navigator.pushReplacement<void, void>(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => const Landing(),
+          ),
+        );
+      }
     }
     setState(() {
       _workOrderList = _fetchWorkOrders();

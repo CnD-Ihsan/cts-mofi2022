@@ -1,30 +1,29 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wfm/api/base_api.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/models/so_model.dart';
 import 'package:wfm/models/tt_model.dart';
 import 'package:http/http.dart' as http;
 
-class WorkOrderApi {
-  static var wfmHost = 'https://wfm.ctsabah.net/api';
+class WorkOrderApi extends BaseApi {
+  static final wfmHost = dotenv.env['WFM_HOST'];
+  static final appVersion = dotenv.env['VERSION'] ?? "0.0.0";
 
   static Future<List<WorkOrder>> getWorkOrderList() async {
-    var uri = Uri.parse('$wfmHost/work-orders/all');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/all');
     List<WorkOrder> workOrderList = [];
-    try{
-      final response = await http.get(uri, headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      }).timeout(const Duration(seconds:10));
 
+    try{
+      final response = await http.get(uri, headers: BaseApi.apiHeaders).timeout(const Duration(seconds:10));
       var jsonData = jsonDecode(response.body);
+      print(BaseApi.apiHeaders);
+      print(response.body);
+
       String? tempDate;
       String? tempTime;
       for (var data in jsonData) {
@@ -47,6 +46,7 @@ class WorkOrderApi {
           time: tempTime,
           group: data['group'],
           type: data['type'],
+          closedAt: data['closed_at']
         );
         workOrderList.add(wo);
       }
@@ -59,27 +59,15 @@ class WorkOrderApi {
   }
 
   static Future<ServiceOrder> getServiceOrder(num id) async {
-
-    var uri =
-        Uri.parse('$wfmHost/work-orders/show');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    Map dataSend = {
-      "id": id,
-    };
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/show');
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Authorization" : "Bearer $token",
-      },
-      body: jsonEncode(dataSend),
+      headers: BaseApi.apiHeaders,
+      body: {"id": id.toString(),},
     );
 
     Map data = jsonDecode(response.body);
-
     String? tempDate;
     String? tempTime;
 
@@ -117,22 +105,12 @@ class WorkOrderApi {
   }
 
   static Future<TroubleshootOrder> getTroubleshootOrder(num id) async {
-    var uri = Uri.parse('$wfmHost/work-orders/show');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-
-    Map dataSend = {
-      "id": id,
-    };
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/show');
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Authorization" : "Bearer $token",
-      },
-      body: jsonEncode(dataSend),
+      headers: BaseApi.apiHeaders,
+      body: {"id": id.toString(),},
     );
 
     Map data = jsonDecode(response.body);
@@ -179,26 +157,17 @@ class WorkOrderApi {
 
 
   static soCompleteOrder(num woId, String? ontSn, String? rgwSn, String? speedTest) async {
-    var uri = Uri.parse('$wfmHost/work-orders/so-request-complete');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-
-    Map jsonOnt = {
-      "wo_id": woId,
-      "ont_sn": ontSn,
-      "rgw_sn": rgwSn,
-      "speed_test": speedTest
-    };
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/so-request-complete');
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization" : "Bearer $token",
+      headers: BaseApi.apiHeaders,
+      body: {
+        "wo_id": woId.toString(),
+        "ont_sn": ontSn,
+        "rgw_sn": rgwSn,
+        "speed_test": speedTest
       },
-      body: jsonEncode(jsonOnt),
     );
 
     Map temp = {};
@@ -212,17 +181,14 @@ class WorkOrderApi {
     }else{
       temp = {"error" : "Status code: ${response.statusCode}"};
     }
-
     return temp;
   }
 
   static ttCompleteOrder(num ttId, String rootCause, String? subCause, String? faultLocation, String speedTest, String actionTaken, String? ontChange, String? ontSn) async {
-    var uri = Uri.parse('$wfmHost/work-orders/tt-request-complete');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/tt-request-complete');
 
     Map jsonOnt = {
-      "tt_id": ttId,
+      "tt_id": ttId.toString(),
       "root_cause": rootCause,
       "sub_cause": subCause,
       "fault_location": faultLocation,
@@ -236,13 +202,8 @@ class WorkOrderApi {
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization" : "Bearer $token",
-      },
-      body: jsonEncode(jsonOnt),
+      headers: BaseApi.apiHeaders,
+      body: jsonOnt,
     );
 
     Map tempMessage = {};
@@ -257,7 +218,7 @@ class WorkOrderApi {
       if(tempMessage.containsKey('errorMessage')){
         tempMessage = {"error" : "Error: ${tempMessage['errorMessage']}"};
       }else if(tempMessage.containsKey('message')){
-        tempMessage = {"error" : "Error: ${tempMessage['errorMessage']}"};
+        tempMessage = {"error" : "Error: ${tempMessage['message']}"};
       }else{
         tempMessage = {"error" : "Error: Unknown error."};
       }
@@ -267,9 +228,7 @@ class WorkOrderApi {
   }
 
   static returnOrder(num woId, num ftthId, String? ftthType, String? returnType, String? remark, String? latitude, String? longitude,List<XFile?> listImage) async {
-    var uri = Uri.parse('$wfmHost/work-orders/return-order/$woId');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/return-order/$woId');
 
     Map jsonOnt = {
       "returnType": returnType,
@@ -282,17 +241,13 @@ class WorkOrderApi {
     }
 
     ftthType == 'SO'
-        ? jsonOnt['soId'] = ftthId
-        : jsonOnt['ttId'] = ftthId;
+        ? jsonOnt['soId'] = ftthId.toString()
+        : jsonOnt['ttId'] = ftthId.toString();
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Authorization" : "Bearer $token",
-      },
-      body: jsonEncode(jsonOnt),
+      headers: BaseApi.apiHeaders,
+      body: jsonOnt,
     );
 
     if(response.statusCode >= 200 && response.statusCode <= 300){
@@ -308,9 +263,7 @@ class WorkOrderApi {
   }
 
   static soReturnOrder(num woId, num soId, String? returnType, String? remarks, List<XFile?> listImage) async {
-    var uri = Uri.parse('$wfmHost/work-orders/so-request-return/$woId');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/so-request-return/$woId');
 
     Map jsonOnt = {
       "soId": soId,
@@ -320,11 +273,7 @@ class WorkOrderApi {
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Authorization" : "Bearer $token",
-      },
+      headers: BaseApi.apiHeaders,
       body: jsonEncode(jsonOnt),
     );
 
@@ -340,9 +289,7 @@ class WorkOrderApi {
   }
 
   static ttReturnOrder(num woId, num ttId, String? returnType, String? remarks, List<XFile?> listImage) async {
-    var uri = Uri.parse('$wfmHost/work-orders/tt-request-return/$woId');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/tt-request-return/$woId');
 
     Map jsonOnt = {
       "ttId": ttId,
@@ -352,11 +299,7 @@ class WorkOrderApi {
 
     final response = await http.post(
       uri,
-      headers: {
-        "useQueryString": "true",
-        "Content-Type": "application/json",
-        "Authorization" : "Bearer $token",
-      },
+      headers: BaseApi.apiHeaders,
       body: jsonEncode(jsonOnt),
     );
 
@@ -378,12 +321,13 @@ class WorkOrderApi {
     final String directoryPath = file.path.split('/').sublist(0, file.path.split('/').length - 1).join('/');
     final File renamedFile = await file.rename('$directoryPath/$newFileName');
 
-    var uri = Uri.parse('$wfmHost/work-orders/upload-image/$id');
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/upload-image/$id');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
     var request = http.MultipartRequest('POST', uri);
     request.headers.addAll({
+      "Version": BaseApi.appVersion,
       "Authorization": "Bearer $token",
     });
     request.fields.addAll({"type": type});
@@ -405,37 +349,14 @@ class WorkOrderApi {
     }
   }
 
-  static deleteImgAttachment(num id, String path, String type) async {
-    var uri =
-        Uri.parse('$wfmHost/work-orders/remove_image/$id/$path');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-
-    try{
-      var response = await http.post(uri, headers: {
-        "Authorization": "Bearer $token",
-      },
-      body: {
-        'type' : type,
-      });
-
-      if (response.statusCode >= 200 && response.statusCode <= 300) {
-        return getImgAttachments(id);
-      } else {
-        return response;
-      }
-    }catch(e){
-      print(e);
-    }
-  }
-
   static uploadMultiImgAttachment(String type, List<XFile?> imgList, num id) async {
-    var uri = Uri.parse('$wfmHost/work-orders/upload-image/$id');
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/upload-image/$id');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
     var request = http.MultipartRequest('POST', uri);
     request.headers.addAll({
+      "Version": BaseApi.appVersion,
       "Authorization": "Bearer $token",
     });
     request.fields.addAll({"type": type});
@@ -461,44 +382,50 @@ class WorkOrderApi {
     }
   }
 
-  static getImgAttachments(num id) async {
-    var uri = Uri.parse('$wfmHost/work-orders/get-image');
+  static deleteImgAttachment(num id, String path, String type) async {
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/remove_image/$id/$path');
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    try{
+      var response = await http.post(uri, headers: BaseApi.apiHeaders,
+          body: {
+            'type' : type,
+          });
+
+      if (response.statusCode >= 200 && response.statusCode <= 300) {
+        return getImgAttachments(id);
+      } else {
+        return response;
+      }
+    }catch(e){
+      print(e);
+    }
+  }
+
+  static getImgAttachments(num id) async {
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/get-image');
 
     final response = await http.post(
       uri,
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: BaseApi.apiHeaders,
       body: {
         'wo_id': id.toString(),
       }
     );
+
     Map img = json.decode(response.body);
     return img;
   }
 
   static activateOnt(num woId, String? ontSn) async {
-    var uri = Uri.parse('$wfmHost/work-orders/submitOnt');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-
-    Map jsonOnt = {
-      "wo" : woId,
-      "ontsn": ontSn
-    };
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/submitOnt');
 
     final response = await http.post(
       uri,
-      headers: {
-        // "useQueryString": "true",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
+      headers: BaseApi.apiHeaders,
+      body: {
+        "wo" : woId.toString(),
+        "ontsn": ontSn
       },
-      body: jsonEncode(jsonOnt),
     );
 
     Map temp = json.decode(response.body);
@@ -506,23 +433,14 @@ class WorkOrderApi {
   }
 
   static ontChangeRequest(num woId) async {
-    var uri = Uri.parse('$wfmHost/work-orders/tt-request-ont-change');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-
-    Map jsonOnt = {
-      "wo_id" : woId,
-    };
+    var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/tt-request-ont-change');
 
     final response = await http.post(
       uri,
-      headers: {
-        // "useQueryString": "true",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
+      headers: BaseApi.apiHeaders,
+      body: {
+        "wo_id" : woId.toString(),
       },
-      body: jsonEncode(jsonOnt),
     );
 
     return response;

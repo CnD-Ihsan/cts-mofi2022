@@ -16,8 +16,7 @@ class ReturnOrder extends StatefulWidget {
   final Function(Map, String) refresh;
 
   const ReturnOrder(
-      {Key? key, required this.woId, required this.ftthId, required this.type, required this.refresh})
-      : super(key: key);
+      {super.key, required this.woId, required this.ftthId, required this.type, required this.refresh});
 
   @override
   State<ReturnOrder> createState() => _ReturnOrderState();
@@ -378,7 +377,7 @@ class _ReturnOrderState extends State<ReturnOrder> {
       // accessing the position and request users of the
       // App to enable the location services.
       AlertDialog alert = AlertDialog(
-        icon: const Icon(Icons.location_disabled),
+        icon: const Icon(Icons.location_off, color: Colors.red, size: 30,),
         title: const Text('Location Service Unavailable'),
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
         contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -387,17 +386,6 @@ class _ReturnOrderState extends State<ReturnOrder> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // Container(
-              //   child: TextButton(
-              //     child: const Text(
-              //       'Cancel',
-              //       style: TextStyle(color: Colors.red),
-              //     ),
-              //     onPressed: () async {
-              //       Navigator.pop(context);
-              //     },
-              //   ),
-              // ),
               TextButton(
                 child: const Text('Open Setting'),
                 onPressed: () async {

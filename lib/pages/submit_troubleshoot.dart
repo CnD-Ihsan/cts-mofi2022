@@ -7,7 +7,7 @@ import 'package:wfm/pages/widgets/message_widgets.dart';
 
 class SubmitTroubleshoot extends StatefulWidget {
   num ttId = 0;
-  SubmitTroubleshoot({Key? key, required this.ttId}) : super(key: key);
+  SubmitTroubleshoot({super.key, required this.ttId});
 
   @override
   State<SubmitTroubleshoot> createState() => _SubmitTroubleshootState();

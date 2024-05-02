@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:wfm/api/utils.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/show_new_installation.dart';
+import 'package:wfm/pages/show_troubleshoot_order.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 
 class SubmitONT extends StatefulWidget {
   num woId = 0;
-  SubmitONT({Key? key, required this.woId}) : super(key: key);
+  SubmitONT({super.key, required this.woId});
 
   @override
   State<SubmitONT> createState() => _SubmitONTState();
@@ -127,7 +127,7 @@ class _SubmitONTState extends State<SubmitONT> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (BuildContext context) => ShowServiceOrder(orderID: woId),
+                        builder: (BuildContext context) => response['type'] == "New Installation" ? ShowServiceOrder(orderID: woId) : ShowTroubleshootOrder(orderID: woId),
                       ),
                           (route) => route.isFirst,
                       // ModalRoute.of(context, ),

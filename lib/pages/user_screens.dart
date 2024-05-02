@@ -9,7 +9,7 @@ import '../api/auth_api.dart';
 
 class UsersScreen extends StatefulWidget {
   final String token;
-  const UsersScreen({Key? key, required this.token}) : super(key: key);
+  const UsersScreen({super.key, required this.token});
 
   @override
   UsersScreenState createState() => UsersScreenState();
@@ -109,7 +109,7 @@ class UsersScreenState extends State<UsersScreen> {
 
 class UpdatePassword extends StatefulWidget {
   final String userEmail;
-  const UpdatePassword({Key? key, required this.userEmail}) : super(key: key);
+  const UpdatePassword({super.key, required this.userEmail});
 
   @override
   State<UpdatePassword> createState() => _UpdatePasswordState();

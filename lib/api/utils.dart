@@ -1,8 +1,5 @@
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class AttachmentUtils {
   AttachmentUtils._();

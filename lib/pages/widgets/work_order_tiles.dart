@@ -7,6 +7,7 @@ class _ArticleDescription extends StatelessWidget {
     required this.group,
     required this.date,
     required this.time,
+    required this.ticketStatus,
   });
 
   final String title;
@@ -14,6 +15,7 @@ class _ArticleDescription extends StatelessWidget {
   final String group;
   final String date;
   final String time;
+  final String ticketStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +26,22 @@ class _ArticleDescription extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Badge(
+                    label: Text(ticketStatus, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),),
+                    backgroundColor: ticketStatus == 'Open' ? Colors.green : Colors.black12,
+                  ),
+                ],
               ),
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
               Text(
@@ -87,6 +98,7 @@ class OrderItem extends StatelessWidget {
     required this.group,
     required this.date,
     required this.time,
+    required this.ticketStatus,
   });
 
   final Widget thumbnail;
@@ -95,6 +107,7 @@ class OrderItem extends StatelessWidget {
   final String group;
   final String date;
   final String time;
+  final String ticketStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +138,7 @@ class OrderItem extends StatelessWidget {
                     group: group,
                     date: date,
                     time: time,
+                    ticketStatus: ticketStatus,
                   ),
                 ),
               ),

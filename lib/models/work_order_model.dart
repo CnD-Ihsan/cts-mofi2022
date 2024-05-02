@@ -25,6 +25,7 @@ class WorkOrder {
   final String carrier;
   final String speed;
   final String? ontSn;
+  final String? closedAt;
 
   WorkOrder({
     required this.woId,
@@ -52,6 +53,7 @@ class WorkOrder {
     this.carrier = '',
     this.speed = '',
     this.ontSn,
+    this.closedAt,
   });
 
   factory WorkOrder.fromJson(Map<WorkOrder, dynamic> json){

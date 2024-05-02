@@ -7,17 +7,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
 import 'package:wfm/models/so_model.dart';
 import 'package:wfm/pages/list_orders.dart';
-import 'package:wfm/pages/return_order.dart';
-import 'package:wfm/pages/submit_ont.dart';
 import 'package:wfm/api/work_order_api.dart';
 import 'package:wfm/pages/widgets/admin_attachment_widget.dart';
-import 'package:wfm/pages/widgets/attachment_widget.dart';
 import 'package:wfm/pages/widgets/message_widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AdminShowServiceOrder extends StatefulWidget {
   final num orderID;
-  const AdminShowServiceOrder({Key? key, required this.orderID}) : super(key: key);
+  const AdminShowServiceOrder({super.key, required this.orderID});
 
   @override
   State<AdminShowServiceOrder> createState() => _AdminShowServiceOrderState();
@@ -181,10 +178,12 @@ class _AdminShowServiceOrderState extends State<AdminShowServiceOrder> {
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
-                      onLongPress: () async {
-                        await Clipboard.setData(ClipboardData(text: so.soName));
-                        // copied successfully
-                      },
+                      onTap: () async {
+                        await Clipboard.setData(ClipboardData(text: so.soName,));
+                        if(mounted){
+                          colorSnackbarMessage(context, "Order ID copied.", Colors.indigoAccent);
+                        }
+                      }
                     ),
                     ListTile(
                       leading: const Icon(Icons.question_mark),

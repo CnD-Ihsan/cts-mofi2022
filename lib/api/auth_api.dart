@@ -1,21 +1,40 @@
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:wfm/api/base_api.dart';
 import 'package:wfm/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class AuthApi{
-  static const wfmHost = 'https://wfm.ctsabah.net/api';
+class AuthApi extends BaseApi{
+
+  static Future<String> checkVersion() async{
+    var uri = Uri.parse('${BaseApi.wfmHost}/auth/getLatestVersion');
+
+    try{
+      final response = await http.get(
+          uri,
+          headers: BaseApi.apiHeaders
+      ).timeout(const Duration(seconds:10));
+
+      String latestVersion = response.body;
+
+      if(response.statusCode == 200){
+        return latestVersion;
+      }else{
+        return latestVersion;
+      }
+    }catch(e){
+      return "Error retrieving version";
+    }
+  }
 
   static Future<dynamic> isUserActive(String? email, String? deviceId) async{
-    var uri = Uri.parse('$wfmHost/auth/isUserActive');
-
+    var uri = Uri.parse('${BaseApi.wfmHost}/auth/isUserActive');
     try{
       final response = await http.post(
           uri,
-          headers: {
-            "useQueryString" : "true"
-          },
+          headers:BaseApi.apiHeaders,
           body: {
             "email" : email,
             "device_id" : deviceId,
@@ -35,7 +54,7 @@ class AuthApi{
   }
 
   static Future<LoginResponseModel> loginRequest(String email, String password) async{
-    var uri = Uri.parse('$wfmHost/auth/login');
+    var uri = Uri.parse('${BaseApi.wfmHost}/auth/login');
 
     //Initialize shared preferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -44,12 +63,7 @@ class AuthApi{
     try{
       final response = await http.post(
           uri,
-          headers: {
-            "useQueryString" : "true",
-            "Content" : "application/json",
-            "Accept" : "application/json",
-            "Authorization" : ""
-          },
+          headers: BaseApi.apiHeaders,
           body: {
             "email" : email,
             "password" : password,
@@ -67,48 +81,45 @@ class AuthApi{
         prefs.setString('organization', data['organization']);
         prefs.setString('token', data['access_token']);
         prefs.setString('fcm_token', fcmToken ?? "Device ID Missing");
+        BaseApi.apiHeaders.update("Authorization", (value) => "Bearer ${prefs.getString('token')}");
 
         return LoginResponseModel(
           user: data['name'],
           token: data['access_token'],
         );
       }else{
+        String msg = data['message'] ?? data['error'];
         return LoginResponseModel(
           user: '',
           token: '',
-          message: data['message'],
+          message: msg,
         );
       }
     }catch(e){
+      // String errMsg = e.toString();
+      String errMsg = "Server connection error.";
+
       return LoginResponseModel(
         user: '',
         token: '',
-        message: e.toString(),
+        message: errMsg,
       );
     }
 
   }
 
   static Future<bool> logOut(String? email, String? fcmToken) async{
-    var uri = Uri.parse('$wfmHost/auth/logOut');
-    var bodyData = {
-      "email" : email,
-      "device_id" : fcmToken,
-    };
+    var uri = Uri.parse('${BaseApi.wfmHost}/auth/logOut');
 
     try{
       final response = await http.post(
           uri,
-          headers: {
-            "useQueryString" : "true"
-          },
+          headers: BaseApi.apiHeaders,
           body: {
             "email" : email,
             "device_id" : fcmToken,
           }
       ).timeout(const Duration(seconds:10));
-
-      Map data = jsonDecode(response.body);
 
       if(response.statusCode == 200){
         return true;
@@ -121,20 +132,16 @@ class AuthApi{
   }
 
   static Future<bool> logOutUser(String token, String email) async{
-    var uri = Uri.parse('$wfmHost/auth/logOutUser');
+    var uri = Uri.parse('${BaseApi.wfmHost}/auth/logOutUser');
     try{
       final response = await http.post(
           uri,
-          headers: {
-            "useQueryString" : "true",
-            "Authorization": "Bearer $token"
-          },
+          headers: BaseApi.apiHeaders,
           body: {
             "email" : email,
           }
       ).timeout(const Duration(seconds:10));
-
-      Map data = jsonDecode(response.body);
+      // Map data = jsonDecode(response.body);
 
       if(response.statusCode == 200){
         return true;

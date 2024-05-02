@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wfm/api/utils.dart';
@@ -15,7 +16,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ShowServiceOrder extends StatefulWidget {
   final num orderID;
-  const ShowServiceOrder({Key? key, required this.orderID}) : super(key: key);
+  const ShowServiceOrder({super.key, required this.orderID});
 
   @override
   State<ShowServiceOrder> createState() => _ShowServiceOrderState();
@@ -296,6 +297,12 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
+                      onTap: () async {
+                        await Clipboard.setData(ClipboardData(text: so.soName,));
+                        if(mounted){
+                          colorSnackbarMessage(context, "Order ID copied.", Colors.indigo);
+                        }
+                      }
                     ),
                     ListTile(
                       leading: const Icon(Icons.question_mark),
@@ -437,6 +444,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                         style: TextStyle(fontSize: 14),
                         textAlign: TextAlign.start,
                       ),
+                      enabled: so.ontSn == null || so.ontSn != 'Terminated',
                       title: Text(
                         so.progress != 'activation'
                             ? so.ontSn ?? "-"
@@ -444,6 +452,14 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                         style:  so.ontSn == "Terminated" ? textStyle(customColor: Colors.red) : textStyle(),
                         textAlign: TextAlign.start,
                       ),
+                        onTap: () async {
+                        if(so.ontSn == null || so.ontSn != 'Terminated'){
+                          await Clipboard.setData(ClipboardData(text: so.ontSn ?? '',));
+                          if(mounted){
+                            colorSnackbarMessage(context, "ONT serial number copied.", Colors.indigo);
+                          }
+                        }
+                        }
                     ) : const SizedBox(),
                     SizedBox(
                       key: _scrollAttachmentKey,
@@ -571,9 +587,11 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
   }
 
   Future<void> _pullRefresh() async {
-    ServiceOrder _so = await WorkOrderApi.getServiceOrder(widget.orderID);
-    setState(() {
-      so = _so;
-    });
+    ServiceOrder updatedSo = await WorkOrderApi.getServiceOrder(widget.orderID);
+    if(mounted){
+      setState(() {
+        so = updatedSo;
+      });
+    }
   }
 }
