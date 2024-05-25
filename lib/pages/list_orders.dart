@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/auth_api.dart';
 import 'package:wfm/api/base_api.dart';
+import 'package:wfm/landing.dart';
 import 'package:wfm/main.dart';
 import 'package:wfm/models/work_order_model.dart';
 import 'package:wfm/pages/admin_show_new_installation.dart';
@@ -701,25 +702,28 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   Future<void> logOut() async{
-    final SharedPreferences prefs =
-    await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool logoutSuccess = await AuthApi.logOut(email, prefs.getString('fcm_token'));
+    String logoutMessage;
+    Color logoutColor;
+    await prefs.clear();
 
-    if(await AuthApi.logOut(email, prefs.getString('fcm_token'))){
-      await prefs.clear();
-      if (mounted) {
-        colorSnackbarMessage(context, 'Account logged out', Colors.green);
-        Navigator.pushReplacement<void, void>(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => const Landing(),
-          ),
-        );
-      }
+    if(logoutSuccess){
+      logoutMessage = "Account logged out";
+      logoutColor = Colors.green;
     }else{
-      if (mounted) {
-        Navigator.pop(context);
-        colorSnackbarMessage(context, 'Log out failed!', Colors.red);
-      }
+      logoutMessage = "Log out failed. Redirecting to login page.";
+      logoutColor = Colors.red;
+    }
+
+    if (mounted) {
+      colorSnackbarMessage(context, logoutMessage, logoutColor);
+      Navigator.pushReplacement<void, void>(
+        context,
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => const Landing(),
+        ),
+      );
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wfm/api/auth_api.dart';
 import 'package:wfm/api/base_api.dart';
@@ -13,6 +14,7 @@ import 'package:version/version.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'landing.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -107,120 +109,5 @@ class _MyAppState extends State<MyApp>{
       onGenerateRoute: RouteGenerator.generateRoute,
       home: const Landing(),
     );
-  }
-}
-
-class Landing extends StatefulWidget {
-  const Landing({super.key});
-
-  @override
-  State createState() => _LandingState();
-}
-
-class _LandingState extends State<Landing> {
-  var loginResponse;
-
-  @override
-  void initState() {
-    super.initState();
-    _verifyVersion();
-    _loadUserInfo();
-  }
-
-  _loadUserInfo() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var activeUser = await AuthApi.isUserActive(prefs.getString('email'), prefs.getString('fcm_token'));
-
-    if(mounted){
-      if (prefs.containsKey('user') && activeUser) {
-        BaseApi.apiHeaders.update("Authorization", (value) => "Bearer ${prefs.getString('token')}");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => WorkOrders(
-                  user: prefs.getString('user') ?? 'NullUser',
-                  email: prefs.getString('email') ?? 'NullEmail'),
-              settings: const RouteSettings(name: '/list'),
-            ),
-          );
-      } else {
-          Navigator.pushNamedAndRemoveUntil(
-              context, '/login', ModalRoute.withName('/login'));
-      }
-    }
-  }
-
-  _verifyVersion() async{
-    String latestVersion = await AuthApi.checkVersion();
-    String currentVersion = BaseApi.appVersion;
-
-    if(mounted){
-      if(currentVersion != latestVersion){
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              // Your page content goes here
-              return Scaffold(
-                body: Center(
-                  child: Card(
-                    elevation: 5,
-                    margin: const EdgeInsets.all(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.update,
-                            size: 50,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Update Required',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'A new version of the app is available. Please update to continue using the app.',
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Current version: $currentVersion',
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            'Latest version: $latestVersion',
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              SystemNavigator.pop();
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-            settings: const RouteSettings(name: '/verify_version'),
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

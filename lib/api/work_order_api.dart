@@ -21,8 +21,6 @@ class WorkOrderApi extends BaseApi {
     try{
       final response = await http.get(uri, headers: BaseApi.apiHeaders).timeout(const Duration(seconds:10));
       var jsonData = jsonDecode(response.body);
-      print(BaseApi.apiHeaders);
-      print(response.body);
 
       String? tempDate;
       String? tempTime;

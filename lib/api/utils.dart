@@ -1,5 +1,8 @@
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wfm/api/auth_api.dart';
 
 class AttachmentUtils {
   AttachmentUtils._();
@@ -72,4 +75,33 @@ class SpeedTestUtils {
       throw 'Could not open Speed Test.';
     }
   }
+}
+
+class PermissionHandlerUtils{
+  void checkNotificationPermission() async {
+    PermissionStatus status = await Permission.notification.status;
+    if (status.isGranted) {
+      // Notification permission is granted
+      // Proceed with app initialization
+    } else {
+      // Notification permission is not granted
+      // Request permission from the user
+      PermissionStatus permissionStatus = await Permission.notification.request();
+      if (permissionStatus.isGranted) {
+        // Notification permission granted by the user
+        // Proceed with app initialization
+      } else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if(prefs.containsKey('user')){
+          AuthApi.logOut(prefs.getString('email'), prefs.getString('fcm_token'));
+        }else{
+
+        }
+        // Notification permission denied by the user
+        // Handle accordingly (e.g., show a message, disable certain features)
+      }
+    }
+  }
+
+
 }
