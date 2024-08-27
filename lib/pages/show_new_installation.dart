@@ -29,6 +29,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
   Map requestVerification = {};
   final TextEditingController _rgwSnCt = TextEditingController();
   final TextEditingController _speedTestCt = TextEditingController();
+  final TextEditingController _fatNameCt = TextEditingController();
 
   final GlobalKey<FormState> _completeSoFormKey = GlobalKey<FormState>();
   final GlobalKey _scrollAttachmentKey = GlobalKey();
@@ -98,7 +99,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
         onPressed: () async => {
           if(_completeSoFormKey.currentState!.validate()){
             loadingScreen(context),
-            requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn, _rgwSnCt.text, _speedTestCt.text),
+            requestVerification = await WorkOrderApi.soCompleteOrder(widget.orderID, so.ontSn, _rgwSnCt.text, _speedTestCt.text, _fatNameCt.text),
             if(!requestVerification.containsKey('error')){
               _pullRefresh(),
               if(mounted){
@@ -147,6 +148,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
 
     _rgwSnCt.text = so.rgwSn ?? _rgwSnCt.text;
     _speedTestCt.text = so.speedTest ?? _speedTestCt.text;
+    _fatNameCt.text = so.fatName ?? _fatNameCt.text;
 
     if (mounted) {
       setState(() {});
@@ -172,7 +174,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("New Installation Order"),
+        title: const Text("New Installation Order"),
         actions: so.status != 'Pending' || so.progress == 'close_requested' ? null : [
           Builder(
               builder: (context) {
@@ -227,6 +229,10 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              const SizedBox(
+                height: 20,
+              ),
+
               const SizedBox(
                 height: 20,
               ),
@@ -324,14 +330,6 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                       leading: const Icon(Icons.access_time),
                       title: Text(
                         so.time ?? 'N/A',
-                        style: textStyle(),
-                        textAlign: TextAlign.start,
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.assignment_ind_outlined),
-                      title: Text(
-                        so.requestedBy,
                         style: textStyle(),
                         textAlign: TextAlign.start,
                       ),
@@ -500,9 +498,8 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                     key: _completeSoFormKey,
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
-                      child: Column(
+                      child: so.progress != 'close_requested' && so.status != 'Completed' ? Column(
                         children: [
-                          so.progress != 'close_requested' && so.status != 'Completed' ?
                           Column(
                             children: [
                               const SizedBox(height: 10,),
@@ -510,9 +507,27 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                                 title: TextFormField(
                                   validator: (value){
                                     if(value == null || value.isEmpty){
+                                      return 'FAT name required';
+                                    }
+                                  },
+                                  controller: _fatNameCt,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "FAT Name *",
+                                    hintText: 'Enter FAT name',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              const SizedBox(height: 20,),
+                              ListTile(
+                                title: TextFormField(
+                                  validator: (value){
+                                    if(value == null || value.isEmpty){
                                       return 'Speed test performance in Mbps is required';
-                                    }else if(value.contains(' ')){
-                                      return 'Invalid input';
                                     }
                                   },
                                   controller: _speedTestCt,
@@ -524,11 +539,7 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                                 ),
                               ),
                             ],
-                          ) : ListTile(
-                            title: Text('Speed Test:'),
-                            subtitle: Text(so.speedTest ?? '-'),
                           ),
-                          so.progress != 'close_requested' && so.status != 'Completed' ?
                           Column(
                             children: [
                               const SizedBox(height: 20,),
@@ -561,13 +572,24 @@ class _ShowServiceOrderState extends State<ShowServiceOrder> {
                                 ),
                               ),
                             ],
-                          ) : ListTile(
-                            title: Text('RGW SN :'),
-                            subtitle: Text(so.rgwSn ?? '-'),
                           ),
                           const SizedBox(height: 20,),
                         ],
-                      ),
+                      ) : Column(children: [
+                          ListTile(
+                            title: const Text('FAT Name:'),
+                            subtitle: Text(so.fatName ?? '-'),
+                          ),
+                          ListTile(
+                            title: const Text('Speed Test:'),
+                            subtitle: Text(so.speedTest ?? '-'),
+                          ),
+                          ListTile(
+                            title: const Text('RGW SN :'),
+                            subtitle: Text(so.rgwSn ?? '-'),
+                          ),
+                          const SizedBox(height: 20,),
+                      ],),
                     ),
                   ),
                 ],

@@ -21,6 +21,7 @@ class WorkOrderApi extends BaseApi {
     try{
       final response = await http.get(uri, headers: BaseApi.apiHeaders).timeout(const Duration(seconds:10));
       var jsonData = jsonDecode(response.body);
+      print(jsonData);
 
       String? tempDate;
       String? tempTime;
@@ -99,6 +100,7 @@ class WorkOrderApi extends BaseApi {
       progress: data['progress'],
       desc: data['description'],
       remark: data['remark'],
+      fatName: data['hc'] != null ? data['hc']['fat_name'] : "-",
     );
   }
 
@@ -154,7 +156,7 @@ class WorkOrderApi extends BaseApi {
   }
 
 
-  static soCompleteOrder(num woId, String? ontSn, String? rgwSn, String? speedTest) async {
+  static soCompleteOrder(num woId, String? ontSn, String? rgwSn, String? speedTest, String? fatName) async {
     var uri = Uri.parse('${BaseApi.wfmHost}/work-orders/so-request-complete');
 
     final response = await http.post(
@@ -164,7 +166,8 @@ class WorkOrderApi extends BaseApi {
         "wo_id": woId.toString(),
         "ont_sn": ontSn,
         "rgw_sn": rgwSn,
-        "speed_test": speedTest
+        "speed_test": speedTest,
+        "fat_name": fatName
       },
     );
 

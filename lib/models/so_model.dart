@@ -27,6 +27,7 @@ class ServiceOrder {
   final String? rgwSn;
   final String? speedTest;
   final String? remark;
+  final String? fatName;
 
   ServiceOrder({
     required this.soId,
@@ -54,6 +55,7 @@ class ServiceOrder {
     this.rgwSn,
     this.speedTest,
     this.remark,
+    this.fatName,
   });
 
   factory ServiceOrder.fromJson(Map<ServiceOrder, dynamic> json){
