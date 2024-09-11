@@ -57,6 +57,54 @@ class _LandingState extends State<Landing> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if(mounted){
+      if(latestVersion == "Error retrieving version"){
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              // Your page content goes here
+              return Scaffold(
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.signal_wifi_statusbar_connected_no_internet_4_outlined,
+                          size: 50,
+                          color: Colors.indigo,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Connection Error',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Failed to establish connection to the server. Please ensure you have stable internet connection and contact admin if issue persists.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            SystemNavigator.pop();
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+            settings: const RouteSettings(name: '/failed_version_check'),
+          ),
+        );
+      }else
       if(currentVersion != latestVersion){
         AuthApi.logOut(prefs.getString('email'), prefs.getString('fcm_token'));
         Navigator.pushReplacement(

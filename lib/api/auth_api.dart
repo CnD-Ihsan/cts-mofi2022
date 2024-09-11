@@ -19,11 +19,7 @@ class AuthApi extends BaseApi{
 
       String latestVersion = response.body;
 
-      if(response.statusCode == 200){
-        return latestVersion;
-      }else{
-        return latestVersion;
-      }
+      return latestVersion;
     }catch(e){
       return "Error retrieving version";
     }

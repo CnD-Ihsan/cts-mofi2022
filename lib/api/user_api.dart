@@ -15,7 +15,6 @@ class UserApi extends BaseApi {
         headers: BaseApi.apiHeaders,
     );
 
-    print(response.body);
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       List<User> users = [];
